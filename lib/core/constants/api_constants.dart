@@ -6,4 +6,7 @@ class ApiConstants {
   static const String googleLogin = '/auth/google';
   static const String me = '/auth/me';
   static const String logout = '/auth/logout';
+
+  // Categories Endpoints
+  static const String categories = '/categories';
 }

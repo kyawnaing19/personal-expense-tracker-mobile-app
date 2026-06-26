@@ -3,7 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
 
 class DioClient {
-  static final _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
   static Dio getInstance() {
     final dio = Dio(
@@ -18,7 +20,7 @@ class DioClient {
       ),
     );
 
-    // Token interceptor
+    // Token Interceptor
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -33,6 +35,14 @@ class DioClient {
         },
       ),
     );
+
+    // ⭐ [UPDATED] Terminal တွင် Request/Response Log များ သေသပ်စွာ ထုတ်ပေးရန် Interceptor ထည့်ခြင်း
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      requestHeader: true,
+      error: true,
+    ));
 
     return dio;
   }

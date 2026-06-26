@@ -1,0 +1,288 @@
+// import 'dart:developer' as developer;
+// import 'package:dio/dio.dart';
+// import 'package:expense_tracker/models/category_model.dart';
+// import 'package:flutter/material.dart';
+// import '../../../core/network/dio_client.dart';
+// import '../../../core/constants/api_constants.dart';
+
+
+// class CategoryRepository {
+//   final Dio _dio = DioClient.getInstance();
+
+//   // 1. [GET] /categories - ရှိသမျှ Category အားလုံး ဆွဲထုတ်ခြင်း
+//   Future<List<CategoryItem>> getCategories() async {
+//     developer.log('🚀 [API GET] Fetching categories from Server...', name: 'CategoryRepository');
+//     try {
+//       final response = await _dio.get(ApiConstants.categories);
+      
+//       if (response.statusCode == 200) {
+//         final List<dynamic> data = response.data['data'] ?? [];
+//         developer.log('✅ [API GET] Successfully fetched ${data.length} categories.', name: 'CategoryRepository');
+        
+//         return data.map((json) {
+//           // Color Parsing (#hex -> Color Object)
+//           String colorHex = json['color'] ?? '#6366F1';
+//           colorHex = colorHex.replaceAll('#', '');
+//           if (colorHex.length == 6) colorHex = "FF$colorHex";
+//           Color color = Color(int.parse("0x$colorHex"));
+
+//           // Icon Parsing (String -> IconData)
+//           int iconCode = json['icon'] != null ? int.tryParse(json['icon'].toString()) ?? Icons.restaurant.codePoint : Icons.restaurant.codePoint;
+//           IconData icon = IconData(iconCode, fontFamily: 'MaterialIcons');
+
+//           return CategoryItem(
+//             id: json['id'].toString(),
+//             name: json['name'] ?? 'Unnamed',
+//             icon: icon,
+//             color: color,
+//             type: json['type'].toString().toLowerCase(),
+//           );
+//         }).toList();
+//       }
+//       throw Exception('Server returned non-200 status');
+//     } catch (e) {
+//       developer.log('❌ [API GET] Error fetching categories: $e', name: 'CategoryRepository', error: e);
+//       throw Exception('Failed to load categories');
+//     }
+//   }
+
+//   // 2. [POST] /categories - Category အသစ်ဆောက်ခြင်း
+//   Future<CategoryItem> createCategory({required String name, required IconData icon, required Color color, required String type}) async {
+//     String hexColor = '#${color.value.toRadixString(16).substring(2)}';
+//     developer.log('🚀 [API POST] Creating Category: Name=$name, Type=$type, Color=$hexColor', name: 'CategoryRepository');
+
+//     try {
+//       final response = await _dio.post(
+//         ApiConstants.categories,
+//         data: {
+//           'name': name,
+//           'icon': icon.codePoint.toString(),
+//           'color': hexColor,
+//           'type': type.toLowerCase(),
+//         },
+//       );
+
+//       final json = response.data['data'];
+//       developer.log('✅ [API POST] Category Created Successfully. ID: ${json['id']}', name: 'CategoryRepository');
+      
+//       return CategoryItem(
+//         id: json['id'].toString(),
+//         name: json['name'],
+//         icon: icon,
+//         color: color,
+//         type: json['type'].toString().toLowerCase(),
+//       );
+//     } catch (e) {
+//       developer.log('❌ [API POST] Error creating category: $e', name: 'CategoryRepository', error: e);
+//       throw Exception('Failed to create category');
+//     }
+//   }
+
+//   // 3. [PUT] /categories/{id} - Category ပြန်ပြင်ခြင်း
+//   Future<void> updateCategory({required String id, required String name, required IconData icon, required Color color, required String type}) async {
+//     String hexColor = '#${color.value.toRadixString(16).substring(2)}';
+//     developer.log('🚀 [API PUT] Updating Category ID: $id to Name=$name, Color=$hexColor', name: 'CategoryRepository');
+
+//     try {
+//       final response = await _dio.put(
+//         '${ApiConstants.categories}/$id',
+//         data: {
+//           'name': name,
+//           'icon': icon.codePoint.toString(),
+//           'color': hexColor,
+//           'type': type.toLowerCase(),
+//         },
+//       );
+//       developer.log('✅ [API PUT] Category ID: $id Updated Successfully. Status: ${response.statusCode}', name: 'CategoryRepository');
+//     } catch (e) {
+//       developer.log('❌ [API PUT] Error updating category ID: $id: $e', name: 'CategoryRepository', error: e);
+//       throw Exception('Failed to update category');
+//     }
+//   }
+
+//   // 4. [DELETE] /categories/{id} - Category ဖျက်ခြင်း
+//   Future<void> deleteCategory(String id) async {
+//     developer.log('🚀 [API DELETE] Deleting Category ID: $id', name: 'CategoryRepository');
+//     try {
+//       final response = await _dio.delete('${ApiConstants.categories}/$id');
+//       developer.log('✅ [API DELETE] Category ID: $id Deleted Successfully. Status: ${response.statusCode}', name: 'CategoryRepository');
+//     } catch (e) {
+//       developer.log('❌ [API DELETE] Error deleting category ID: $id: $e', name: 'CategoryRepository', error: e);
+//       throw Exception('Failed to delete category');
+//     }
+//   }
+// }
+
+
+import 'dart:developer' as developer;
+import 'package:dio/dio.dart';
+import 'package:expense_tracker/models/category_model.dart';
+import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import '../../../core/network/dio_client.dart';
+import '../../../core/constants/api_constants.dart';
+
+
+class CategoryRepository {
+  final Dio _dio = DioClient.getInstance();
+  final Box _cacheBox = Hive.box('categories_cache');
+
+  // Local DB သို့ Cache သိမ်းဆည်းခြင်း
+  void _saveToLocalDB(List<CategoryItem> items) {
+    final List<Map<String, dynamic>> rawList = items.map((item) => {
+      'id': item.id,
+      'name': item.name,
+      'icon': item.icon.codePoint.toString(),
+      'color': '#${item.color.value.toRadixString(16).substring(2)}',
+      'type': item.type,
+    }).toList();
+    _cacheBox.put('cached_list', rawList);
+    developer.log('📦 [LOCAL DB] Successfully cached ${items.length} items to Hive.', name: 'CategoryRepository');
+  }
+
+  // Local DB မှ ဒေတာ ပြန်ထုတ်ခြင်း
+  List<CategoryItem> _loadFromLocalDB() {
+    final List<dynamic>? rawList = _cacheBox.get('cached_list');
+    if (rawList == null) return [];
+    
+    return rawList.map((json) {
+      String colorHex = json['color'] ?? '#6366F1';
+      colorHex = colorHex.replaceAll('#', '');
+      if (colorHex.length == 6) colorHex = "FF$colorHex";
+      Color color = Color(int.parse("0x$colorHex"));
+
+      int iconCode = int.tryParse(json['icon'].toString()) ?? Icons.restaurant.codePoint;
+      IconData icon = IconData(iconCode, fontFamily: 'MaterialIcons');
+
+      return CategoryItem(
+        id: json['id'].toString(),
+        name: json['name'] ?? 'Unnamed',
+        icon: icon,
+        color: color,
+        type: json['type'].toString().toLowerCase(),
+      );
+    }).toList();
+  }
+
+  // 1. [GET] Categories
+  Future<List<CategoryItem>> getCategories() async {
+    final localData = _loadFromLocalDB();
+    developer.log('⚡ [LOCAL DB LOAD] Found ${localData.length} items in Cache.', name: 'CategoryRepository');
+
+    try {
+      developer.log('🚀 [API GET] Fetching fresh data from Server...', name: 'CategoryRepository');
+      final response = await _dio.get(ApiConstants.categories);
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        
+        final List<CategoryItem> remoteItems = data.map((json) {
+          String colorHex = json['color'] ?? '#6366F1';
+          colorHex = colorHex.replaceAll('#', '');
+          if (colorHex.length == 6) colorHex = "FF$colorHex";
+          Color color = Color(int.parse("0x$colorHex"));
+
+          int iconCode = int.tryParse(json['icon'].toString()) ?? Icons.restaurant.codePoint;
+          IconData icon = IconData(iconCode, fontFamily: 'MaterialIcons');
+
+          return CategoryItem(
+            id: json['id'].toString(),
+            name: json['name'] ?? 'Unnamed',
+            icon: icon,
+            color: color,
+            type: json['type'].toString().toLowerCase(),
+          );
+        }).toList();
+
+        _saveToLocalDB(remoteItems);
+        return remoteItems;
+      }
+    } catch (e) {
+      developer.log('⚠️ [OFFLINE MODE] Network failed ($e). Using Local Cache instead.', name: 'CategoryRepository');
+      if (localData.isNotEmpty) {
+        return localData;
+      }
+    }
+    return localData;
+  }
+
+  // 2. [POST] Create Category (⭐ Final Variable Assignment Error ပြဿနာကို ရှင်းထားပါသည်)
+  Future<CategoryItem> createCategory({required String name, required IconData icon, required Color color, required String type}) async {
+    final String tempId = DateTime.now().millisecondsSinceEpoch.toString();
+    CategoryItem newItem = CategoryItem(id: tempId, name: name, icon: icon, color: color, type: type);
+
+    final currentList = _loadFromLocalDB();
+    currentList.add(newItem);
+    _saveToLocalDB(currentList);
+
+    try {
+      String hexColor = '#${color.value.toRadixString(16).substring(2)}';
+      final response = await _dio.post(
+        ApiConstants.categories,
+        data: {
+          'name': name,
+          'icon': icon.codePoint.toString(),
+          'color': hexColor,
+          'type': type.toLowerCase(),
+        },
+      );
+      
+      final json = response.data['data'];
+      String serverId = json['id'].toString();
+
+      // [FIXED] final မို့လို့ တိုက်ရိုက် Assign မလုပ်ဘဲ Server ID ဖြင့် Item အသစ်ပြန်လဲပြီး Cache ထဲသိမ်းခြင်း
+      final listForUpdate = _loadFromLocalDB();
+      final idx = listForUpdate.indexWhere((element) => element.id == tempId);
+      if (idx != -1) {
+        newItem = CategoryItem(id: serverId, name: name, icon: icon, color: color, type: type);
+        listForUpdate[idx] = newItem;
+        _saveToLocalDB(listForUpdate);
+      }
+      
+      developer.log('✅ [SERVER SYNC] Category Created and Synced to Server with ID: $serverId', name: 'CategoryRepository');
+    } catch (e) {
+      developer.log('⚠️ [LOCAL ONLY SAVED] Internet offline. Saved locally with Temp ID.', name: 'CategoryRepository');
+    }
+    return newItem;
+  }
+
+  // 3. [PUT] Update Category
+  Future<void> updateCategory({required String id, required String name, required IconData icon, required Color color, required String type}) async {
+    final currentList = _loadFromLocalDB();
+    final index = currentList.indexWhere((element) => element.id == id);
+    if (index != -1) {
+      currentList[index] = CategoryItem(id: id, name: name, icon: icon, color: color, type: type);
+      _saveToLocalDB(currentList);
+    }
+
+    try {
+      String hexColor = '#${color.value.toRadixString(16).substring(2)}';
+      await _dio.put(
+        '${ApiConstants.categories}/$id',
+        data: {
+          'name': name,
+          'icon': icon.codePoint.toString(),
+          'color': hexColor,
+          'type': type.toLowerCase(),
+        },
+      );
+      developer.log('✅ [SERVER SYNC] Category ID: $id Update Synced.', name: 'CategoryRepository');
+    } catch (e) {
+      developer.log('⚠️ [LOCAL ONLY UPDATED] Update saved locally. Internet offline.', name: 'CategoryRepository');
+    }
+  }
+
+  // 4. [DELETE] Delete Category
+  Future<void> deleteCategory(String id) async {
+    final currentList = _loadFromLocalDB();
+    currentList.removeWhere((element) => element.id == id);
+    _saveToLocalDB(currentList);
+
+    try {
+      await _dio.delete('${ApiConstants.categories}/$id');
+      developer.log('✅ [SERVER SYNC] Category ID: $id Delete Synced.', name: 'CategoryRepository');
+    } catch (e) {
+      developer.log('⚠️ [LOCAL ONLY DELETED] Removed locally. Internet offline.', name: 'CategoryRepository');
+    }
+  }
+}
