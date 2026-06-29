@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+// Repositories
 import 'package:expense_tracker/features/auth/data/auth_repository.dart';
 import 'package:expense_tracker/features/auth/data/category_repository.dart';
+import 'package:expense_tracker/features/auth/data/transaction_repository.dart'; 
+
+// Blocs & Events
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_event.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart'; 
+
+// Screens
 import 'package:expense_tracker/features/auth/presentation/screens/category_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/login_screen.dart';
 
@@ -36,6 +44,9 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<CategoryRepository>(
           create: (context) => CategoryRepository(),
         ),
+        RepositoryProvider<TransactionRepository>(
+          create: (context) => TransactionRepository(), 
+        ),
       ],
       // 2️⃣ BLoCs များကို တည်ဆောက်ပြီး Event များကို စတင်လှမ်းခေါ်ခြင်း
       child: MultiBlocProvider(
@@ -49,6 +60,11 @@ class MyApp extends StatelessWidget {
             create: (context) => CategoryBloc(
               RepositoryProvider.of<CategoryRepository>(context),
             )..add(LoadCategories()), // App စဖွင့်သည်နှင့် Local Storage/Server မှ ဒေတာဆွဲယူမည်
+          ),
+          BlocProvider<TransactionBloc>(
+            create: (context) => TransactionBloc(
+              RepositoryProvider.of<TransactionRepository>(context),
+            ), // 🔄 ⭐ TransactionBloc ကို ဒီမှာ ထည့်သွင်းပေးလိုက်ပါတယ်
           ),
         ],
         // 3️⃣ MaterialApp UI အပိုင်း
@@ -72,7 +88,7 @@ class MyApp extends StatelessWidget {
                   ),
                 );
               }
-              return const LoginScreen(); // Login မဝင်ရသေးပါက Login Screen ပြမည်
+                return const LoginScreen(); // Login မဝင်ရသေးပါက Login Screen ပြမည်
             },
           ),
         ),

@@ -1,6 +1,8 @@
 import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_state.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart';
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:expense_tracker/models/record_model.dart';
@@ -8,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-
 
 List<RecordItem> globalRecords = [];
 enum CategoryState { view, calculator, deleteConfirm, add, edit, calendar }
@@ -26,54 +27,29 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
   
   late TabController _tabController;
 
+  // 🧮 Calculator State Variables
+  String _amount = "0";             
+  String _expression = "";          
+  double? _firstOperand;            
+  String? _currentOperator;         
+  bool _shouldResetDisplay = false; 
+
   final List<Color> _availableColors = [
-    const Color(0xFF6366F1), // Indigo
-    const Color(0xFF10B981), // Emerald Green
-    const Color(0xFFF59E0B), // Amber Orange
-    const Color(0xFFEF4444), // Red
-    const Color(0xFFEC4899), // Pink
-    const Color(0xFF06B6D4), // Cyan Blue
-    const Color(0xFF8B5CF6), // Purple
-    const Color(0xFF14B8A6), // Teal
-    const Color(0xFFF43F5E), // Rose
-    const Color(0xFF84CC16), // Lime Green
-    const Color(0xFF3B82F6), // Blue
-    const Color(0xFFEAB308), // Yellow
-    const Color(0xFF6B7280), // Slate Grey
-    const Color(0xFF9A3412), // Rust Brown
-    const Color.fromARGB(255, 233, 243, 90),
+    const Color(0xFF6366F1), const Color(0xFF10B981), const Color(0xFFF59E0B),
+    const Color(0xFFEF4444), const Color(0xFFEC4899), const Color(0xFF06B6D4),
+    const Color(0xFF8B5CF6), const Color(0xFF14B8A6), const Color(0xFFF43F5E),
+    const Color(0xFF84CC16), const Color(0xFF3B82F6), const Color(0xFFEAB308),
+    const Color(0xFF6B7280), const Color(0xFF9A3412), const Color.fromARGB(255, 233, 243, 90),
   ];
 
   final List<IconData> _availableIcons = [
-    Icons.restaurant,          // Food & Drinks
-    Icons.shopping_bag,        // Shopping
-    Icons.directions_car,      // Transport / Car
-    Icons.home,                // House Rent / Property
-    Icons.local_hospital,      // Medical / Health
-    Icons.school,              // Education
-    Icons.flight,              // Travel
-    Icons.movie,               // Entertainment
-    Icons.fitness_center,      // Gym / Sports
-    Icons.dry_cleaning,        // Laundry / Clothes
-    Icons.pets,                // Pets Care
-    Icons.wifi,                // Internet / Phone Bill
-    Icons.build,               // Maintenance / Repairs
-    Icons.card_giftcard,       // Gifts / Donations
-    Icons.attach_money,        // Salary
-    Icons.payments,            // Freelance / Bonus
-    Icons.trending_up,         // Investments / Stocks
-    Icons.storefront,          // Business Profit
-    Icons.account_balance,     // Bank Transfer
-    Icons.calendar_month_outlined,    
-    Icons.handshake,     // Tips / Others
-    Icons.phone,
-    Icons.school_outlined,
-    Icons.music_note_outlined,
-    Icons.headphones,
-    Icons.local_cafe,
-    Icons.health_and_safety,
-    Icons.computer,
-  
+    Icons.restaurant, Icons.shopping_bag, Icons.directions_car, Icons.home,
+    Icons.local_hospital, Icons.school, Icons.flight, Icons.movie,
+    Icons.fitness_center, Icons.dry_cleaning, Icons.pets, Icons.wifi,
+    Icons.build, Icons.card_giftcard, Icons.attach_money, Icons.payments,
+    Icons.trending_up, Icons.storefront, Icons.account_balance, Icons.calendar_month_outlined,    
+    Icons.handshake, Icons.phone, Icons.school_outlined, Icons.music_note_outlined,
+    Icons.headphones, Icons.local_cafe, Icons.health_and_safety, Icons.computer,
   ];
 
   CategoryItem? _selectedCategory;
@@ -86,10 +62,8 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
   IconData _tempIcon = Icons.restaurant;
   String _tempType = "Expense"; 
   
-  String _amount = "0.00";
   XFile? _pickedImage;
   String _calendarHeaderText = "";
-  
   DateTime _currentSelectedCalendarDate = DateTime.now();
 
   @override
@@ -97,8 +71,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     super.initState();
     _calendarHeaderText = DateFormat('EEE, MMM d, yyyy').format(DateTime.now());
     _tabController = TabController(length: 2, vsync: this);
-    
-    // Login ဝင်ဝင်ချင်းမှာ Static data တွေမပြဘဲ၊ Server ထဲက User ဒေတာတွေကို ဆွဲထုတ်ရန်အချက်
     BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
   }
 
@@ -148,53 +120,121 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
 
   void _onKeypadPressed(String value) {
     setState(() {
-      if (value == "⌫") {
-        if (_amount != "0.00") {
-          String digits = _amount.replaceAll('.', '');
-          digits = digits.substring(0, digits.length - 1);
-          if (digits.isEmpty) digits = "0";
-          double amountDouble = double.parse(digits) / 100;
-          _amount = amountDouble.toStringAsFixed(2);
-        }
-      } else if (value == "✓") {
-        double parsedAmount = double.tryParse(_amount) ?? 0.0;
-        if (parsedAmount > 0 && _selectedCategory != null) {
-          String formattedTime = DateFormat('dd/MM HH:mm:ss').format(_currentSelectedCalendarDate);
-          String userNote = _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : "No note";
-          String txType = _selectedCategory!.type;
-          String formattedAmountDisplay = txType == 'income' 
-              ? "+${NumberFormat('#,##0.00').format(parsedAmount)}"
-              : "-${NumberFormat('#,##0.00').format(parsedAmount)}";
+      if (value == "Today") {
+        _currentSelectedCalendarDate = DateTime.now();
+        _calendarHeaderText = DateFormat('EEE, MMM d, yyyy').format(_currentSelectedCalendarDate);
+        _currentState = CategoryState.calendar; 
+        return;
+      }
 
-          globalRecords.add(
-            RecordItem(
-              title: _selectedCategory!.name, 
-              note: userNote,                 
-              time: formattedTime,
-              amount: formattedAmountDisplay,
-              type: txType,
-              icon: _selectedCategory!.icon,
-              color: _selectedCategory!.color,
+      if (value == "⌫") {
+        if (_amount != "0" && _amount != "Error") {
+          if (_amount.length > 1) {
+            _amount = _amount.substring(0, _amount.length - 1);
+          } else {
+            _amount = "0";
+          }
+        }
+        return;
+      }
+
+      if (value == "+" || value == "-" || value == "×" || value == "÷") {
+        if (_amount == "Error") return;
+        _firstOperand = double.tryParse(_amount);
+        _currentOperator = value;
+        _expression = "${_amount} ${_currentOperator}"; 
+        _shouldResetDisplay = true; 
+        return;
+      }
+
+      if (value == "=") {
+        _calculateResult();
+        return;
+      }
+
+      if (value == "✓") {
+        double parsedAmount = double.tryParse(_amount) ?? 0.0;
+        
+        if (parsedAmount == 0.0 || _amount == "0" || _amount == "Error") {
+          return; 
+        }
+
+        if (_selectedCategory != null) {
+          String userNote = _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : "No note";
+          
+          BlocProvider.of<TransactionBloc>(context).add(
+            AddTransactionRequested(
+              categoryId: _selectedCategory!.id,
+              amount: parsedAmount,
+              note: userNote,
             ),
           );
         }
-        _amount = "0.00";
+        
+        _amount = "0";
+        _expression = "";
+        _firstOperand = null;
+        _currentOperator = null;
+        _shouldResetDisplay = false;
         _noteController.clear();
         _pickedImage = null;
         _selectedCategory = null;
         _currentState = CategoryState.view;
-      } else if (value == "Today") {
-        _currentSelectedCalendarDate = DateTime.now();
-        _calendarHeaderText = DateFormat('EEE, MMM d, yyyy').format(_currentSelectedCalendarDate);
-        _currentState = CategoryState.calendar; 
-      } else if (int.tryParse(value) != null) {
-        String digits = _amount.replaceAll('.', '');
-        if (digits == "000") digits = "";
-        digits += value;
-        double amountDouble = double.parse(digits) / 100;
-        _amount = amountDouble.toStringAsFixed(2);
+        return;
+      }
+
+      if (value == ".") {
+        if (_shouldResetDisplay || _amount == "Error") {
+          _amount = "0.";
+          _shouldResetDisplay = false;
+        } else if (!_amount.contains(".")) {
+          _amount += ".";
+        }
+        return;
+      }
+
+      if (_shouldResetDisplay || _amount == "Error") {
+        _amount = value;
+        _shouldResetDisplay = false;
+      } else {
+        if (_amount == "0") {
+          _amount = value; 
+        } else {
+          _amount += value; 
+        }
       }
     });
+  }
+
+  void _calculateResult() {
+    if (_firstOperand == null || _currentOperator == null) return;
+    
+    double secondOperand = double.tryParse(_amount) ?? 0;
+    double result = 0;
+
+    switch (_currentOperator) {
+      case "+": result = _firstOperand! + secondOperand; break;
+      case "-": result = _firstOperand! - secondOperand; break;
+      case "×": result = _firstOperand! * secondOperand; break;
+      case "÷":
+        if (secondOperand != 0) {
+          result = _firstOperand! / secondOperand;
+        } else {
+          _amount = "Error"; _expression = ""; _firstOperand = null; _currentOperator = null;
+          return;
+        }
+        break;
+    }
+
+    if (result % 1 == 0) {
+      _amount = result.toInt().toString();
+    } else {
+      _amount = result.toStringAsFixed(2); 
+    }
+    
+    _firstOperand = null;
+    _currentOperator = null;
+    _expression = ""; 
   }
 
   void _showActionBottomSheet(CategoryItem item) {
@@ -289,7 +329,8 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                     ],
                   ),
                 ),
-                if (_currentState == CategoryState.view || _currentState == CategoryState.deleteConfirm)
+                if (_currentState == CategoryState.view ||
+                    _currentState == CategoryState.deleteConfirm)
                   _buildBottomNavigationBar(),
               ],
             );
@@ -348,9 +389,32 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     );
   }
 
-  // User ဆောက်ထားတဲ့ Data အစစ်တွေပဲ ပြမယ့် နေရာ (Static ဒေတာ လုံးဝမပါပါ)
   Widget _buildCategoryListFiltered({required String type}) {
-    return BlocBuilder<CategoryBloc, CategoryStateBase>(
+    return BlocConsumer<CategoryBloc, CategoryStateBase>(
+      listener: (context, state) {
+        if (state is CategoryError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      state.message,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color.fromARGB(255, 14, 13, 13),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         if (state is CategoryLoading) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)));
@@ -388,6 +452,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
             return ListTile(
               onTap: () => setState(() {
                 _selectedCategory = item;
+                _amount = "0"; _expression = ""; _firstOperand = null; _currentOperator = null; _shouldResetDisplay = false;
                 _currentState = CategoryState.calculator;
               }),
               leading: Container(
@@ -411,7 +476,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                 icon: const Icon(Icons.more_vert, size: 22, color: Colors.black54),
                 onPressed: () => _showActionBottomSheet(item),
               ),
-            );
+            ); // <-- ListTile ပိတ်တာက ဒီနေရာမှာပဲ ဖြစ်ရပါမယ်
           },
         );
       },
@@ -423,15 +488,24 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
       alignment: Alignment.bottomCenter,
       child: Container(
         color: const Color(0xFFE5E7EB),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            if (_expression.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  _expression, 
+                  style: const TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)
+                ),
+              ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Icon(Icons.assignment_outlined, color: Colors.black54),
-                Text(_amount, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Text(_amount, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 8),
@@ -445,19 +519,130 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                   icon: Icon(_pickedImage != null ? Icons.check_circle : Icons.camera_alt_outlined, 
                              color: _pickedImage != null ? Colors.green : Colors.grey),
                   onPressed: _showImageSourceDialog,
-                ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ), 
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none), 
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             ),
-            const SizedBox(height: 12),
-            _buildCalculatorKeys(),
+            const SizedBox(height: 10),
+            _buildBalancedKeypadUI(), 
           ],
         ),
       ),
     );
   }
 
+  Widget _buildBalancedKeypadUI() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cellHeight = (constraints.maxWidth / 4) * 0.65; 
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 4,
+          mainAxisSpacing: 5,
+          crossAxisSpacing: 5,
+          childAspectRatio: (constraints.maxWidth / 4) / cellHeight,
+          children: [
+            _buildBaseButton("7"), _buildBaseButton("8"), _buildBaseButton("9"), _buildActionButton("Today"),
+            _buildBaseButton("4"), _buildBaseButton("5"), _buildBaseButton("6"),
+            Row(
+              children: [
+                Expanded(child: _buildActionButton("+")),
+                const SizedBox(width: 4),
+                Expanded(child: _buildActionButton("-")),
+              ],
+            ),
+            _buildBaseButton("1"), _buildBaseButton("2"), _buildBaseButton("3"),
+            Row(
+              children: [
+                Expanded(child: _buildActionButton("×")),
+                const SizedBox(width: 4),
+                Expanded(child: _buildActionButton("÷")),
+              ],
+            ),
+            _buildBaseButton("0"), _buildBaseButton("."), _buildBaseButton("="),
+            Row(
+              children: [
+                Expanded(child: _buildActionButton("⌫")),
+                const SizedBox(width: 4),
+                Expanded(child: _buildActionButton("✓")),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBaseButton(String label) {
+    bool isEquals = label == "=";
+    bool isDot = label == ".";
+    double fontSize = isDot ? 26 : 18; 
+
+    return GestureDetector(
+      onTap: () => _onKeypadPressed(label),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isEquals ? const Color(0xFF6366F1) : Colors.white, 
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: isEquals ? Colors.white : Colors.black,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String label) {
+    bool isToday = label == "Today";
+    bool isConfirm = label == "✓";
+    bool isBackspace = label == "⌫";
+    bool isOperator = label == "+" || label == "-" || label == "×" || label == "÷";
+
+    Color textColor = Colors.black;
+    if (isConfirm) {
+      textColor = (_amount == "0" || _amount == "Error") ? Colors.grey : Colors.green;
+    } else if (isToday) {
+      textColor = Colors.blue;
+    } else if (isBackspace) {
+      textColor = Colors.redAccent;
+    } else if (isOperator) {
+      textColor = Colors.orangeAccent;
+    }
+
+    double fontSize = isOperator ? 22 : (isToday ? 13 : 16);
+
+    return GestureDetector(
+      onTap: () => _onKeypadPressed(label),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ⭐ [FIXED DELETE CONFIRMATION BOX]
   Widget _buildDeleteAlertBox(double screenWidth) {
     return Container(
       color: Colors.black26,
@@ -485,9 +670,18 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                 TextButton(
                   onPressed: () {
                     if (_itemToModify != null) {
+                      // 1. 🛑 [FIXED] Event Name အမှန်ဖြစ်သော DeleteCategory သို့ ပြောင်းလဲခေါ်ဆိုခြင်း
+                      //BlocProvider.of<CategoryBloc>(context).add(DeleteCategoryRequested(_itemToModify!.id));
+                      //BlocProvider.of<CategoryBloc>(context).add(DeleteCategoryRequested(id: _itemToModify!.id));
                       BlocProvider.of<CategoryBloc>(context).add(DeleteCategoryRequested(_itemToModify!.id));
+                      
+                      // 2. 🔄 [API REFRESH] Category ပျက်လျှင် သက်ဆိုင်ရာ transaction များပါ ချက်ချင်း ပျောက်သွားစေရန်
+                      BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+
                       _selectedCategory = null;
+                      _itemToModify = null;
                       setState(() => _currentState = CategoryState.view);
+                    // _currentState = CategoryState.view;
                     }
                   },
                   child: const Text("Confirm", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
@@ -579,7 +773,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
       "21", "22", "23", "24", "25", "26", "27",
       "28", "29", "30", "1", "2", "3", "4"
     ];
-
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -606,7 +799,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                 String day = days[index];
                 bool isCurrentMonth = !(index == 0 || index > 30);
                 bool isSelectedDay = isCurrentMonth && (int.tryParse(day) == _currentSelectedCalendarDate.day);
-
                 return GestureDetector(
                   onTap: () {
                     if (isCurrentMonth) {
@@ -765,41 +957,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildCalculatorKeys() {
-    final List<String> keys = [
-      "7", "8", "9", "Today",
-      "4", "5", "6", "+",
-      "1", "2", "3", "×",
-      ".", "0", "⌫", "✓"
-    ];
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, childAspectRatio: 2.1, mainAxisSpacing: 4, crossAxisSpacing: 4
-      ),
-      itemCount: keys.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () => _onKeypadPressed(keys[index]),
-          child: Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
-            child: Center(
-              child: Text(
-                keys[index], 
-                style: TextStyle(
-                  fontSize: 16, 
-                  fontWeight: FontWeight.bold,
-                  color: keys[index] == "✓" ? Colors.green : (keys[index] == "Today" ? Colors.blue : Colors.black)
-                )
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
+ // 📥 ပြင်ဆင်ပြီးသား _buildBottomNavigationBar Widget ဖြစ်ပါတယ်
   Widget _buildBottomNavigationBar() {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double tabWidth = screenWidth / 5;
@@ -809,7 +967,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     return Container(
       width: screenWidth,
       height: 65,
-      color: Colors.white,
+      color: Colors.white, // Navigation Background အောက်ခြေ
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -825,11 +983,11 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
             child: Container(
               width: 48, height: 48,
               decoration: const BoxDecoration(
-                color: Color(0xFF38BDF8),
+                color: Color(0xFF8B5CF6), // 🎯 image_a16a17.png အတိုင်း Floating Circle ကို ခရမ်းရောင်ပြောင်းလဲထားသည်
                 shape: BoxShape.circle,
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
               ),
-              child: Icon(navIcons[_currentTabIndex], color: Colors.black, size: 26),
+              child: Icon(navIcons[_currentTabIndex], color: Colors.black, size: 26), // 🎯 Icon အရောင် အနက်
             ),
           ),
           Positioned(
@@ -856,7 +1014,11 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                         });
                       }
                     },
-                    child: Center(child: isSelected ? const SizedBox.shrink() : Icon(navIcons[index], size: 26, color: Colors.black54)),
+                    child: Center(
+                      child: isSelected 
+                          ? const SizedBox.shrink() 
+                          : Icon(navIcons[index], size: 26, color: Colors.black), // 🎯 ပုံစံအတိုင်း Unselected Icons ကို အနက်ရောင်ပြောင်းထားသည်
+                    ),
                   ),
                 );
               }),
@@ -867,14 +1029,18 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     );
   }
 }
-
 class NavCurvePainter extends CustomPainter {
   final int selectedIndex;
   final double tabWidth;
   NavCurvePainter({required this.selectedIndex, required this.tabWidth});
+
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()..color = const Color(0xFFE5E7EB)..style = PaintingStyle.fill;
+    // 🎯 ဒီနေရာမှာ အဖြူရောင် (Colors.white) သို့ ပြောင်းလဲလိုက်ပါတယ်ဗျာ
+    final Paint paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill; 
+      
     final Path path = Path();
     double startingX = selectedIndex * tabWidth;
     path.moveTo(0, 0);
@@ -887,6 +1053,8 @@ class NavCurvePainter extends CustomPainter {
     path.close();
     canvas.drawPath(path, paint);
   }
+
   @override
-  bool shouldRepaint(covariant NavCurvePainter oldDelegate) => oldDelegate.selectedIndex != selectedIndex || oldDelegate.tabWidth != tabWidth;
+  bool shouldRepaint(covariant NavCurvePainter oldDelegate) => 
+      oldDelegate.selectedIndex != selectedIndex || oldDelegate.tabWidth != tabWidth;
 }

@@ -272,17 +272,30 @@ class CategoryRepository {
     }
   }
 
-  // 4. [DELETE] Delete Category
   Future<void> deleteCategory(String id) async {
-    final currentList = _loadFromLocalDB();
-    currentList.removeWhere((element) => element.id == id);
-    _saveToLocalDB(currentList);
+  // Local DB မှာ ကြိုဖျက်ထားတာကို ခေတ္တရပ်ဆိုင်းထားပါမယ် (Server က အိုကေမှ ဖျက်ဖို့)
+  // final currentList = _loadFromLocalDB();
 
-    try {
-      await _dio.delete('${ApiConstants.categories}/$id');
-      developer.log('✅ [SERVER SYNC] Category ID: $id Delete Synced.', name: 'CategoryRepository');
-    } catch (e) {
-      developer.log('⚠️ [LOCAL ONLY DELETED] Removed locally. Internet offline.', name: 'CategoryRepository');
+  try {
+    await _dio.delete('${ApiConstants.categories}/$id');
+    
+    // Server မှာ အောင်မြင်စွာ ပျက်မှ Local Cache ထဲကပါ လိုက်ဖျက်မယ်
+    final currentList = _loadFromLocalDB();
+    currentList.removeWhere((element) => element.id.toString() == id.toString());
+    _saveToLocalDB(currentList);
+    
+    developer.log('✅ [SERVER SYNC] Category ID: $id Deleted.', name: 'CategoryRepository');
+  } on DioException catch (e) {
+    developer.log('⚠️ [SERVER ERROR] Cannot delete category: ${e.response?.statusCode}', name: 'CategoryRepository');
+    
+    // Server က 500 ပြန်ရင် သေချာပေါက် ဒေတာရှိနေလို့ ဖြစ်တဲ့အတွက် Error Message ပေးလိုက်မယ်
+    if (e.response?.statusCode == 500) {
+      throw Exception("This category contains transactions and cannot be deleted.");
     }
+    
+    throw Exception("Failed to delete category. Please try again.");
+  } catch (e) {
+    throw Exception(e.toString());
   }
+}
 }

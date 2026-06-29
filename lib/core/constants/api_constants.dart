@@ -9,4 +9,7 @@ class ApiConstants {
 
   // Categories Endpoints
   static const String categories = '/categories';
+
+  // Transactions Endpoints 
+  static const String transactions = '/transactions';
 }
