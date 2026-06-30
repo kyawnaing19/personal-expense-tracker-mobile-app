@@ -3,7 +3,6 @@ import 'package:expense_tracker/features/auth/presentation/bloc/category_event.d
 import 'package:expense_tracker/features/auth/presentation/bloc/category_state.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
-import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart';
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:expense_tracker/models/record_model.dart';
 import 'package:flutter/material.dart';
@@ -152,6 +151,36 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         return;
       }
 
+      // if (value == "✓") {
+      //   double parsedAmount = double.tryParse(_amount) ?? 0.0;
+        
+      //   if (parsedAmount == 0.0 || _amount == "0" || _amount == "Error") {
+      //     return; 
+      //   }
+
+      //   if (_selectedCategory != null) {
+      //     String userNote = _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : "No note";
+          
+      //     BlocProvider.of<TransactionBloc>(context).add(
+      //       AddTransactionRequested(
+      //         categoryId: _selectedCategory!.id,
+      //         amount: parsedAmount,
+      //         note: userNote,
+      //       ),
+      //     );
+      //   }
+        
+      //   _amount = "0";
+      //   _expression = "";
+      //   _firstOperand = null;
+      //   _currentOperator = null;
+      //   _shouldResetDisplay = false;
+      //   _noteController.clear();
+      //   _pickedImage = null;
+      //   _selectedCategory = null;
+      //   _currentState = CategoryState.view;
+      //   return;
+      // }
       if (value == "✓") {
         double parsedAmount = double.tryParse(_amount) ?? 0.0;
         
@@ -162,6 +191,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         if (_selectedCategory != null) {
           String userNote = _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : "No note";
           
+          // ၁။ ဒေတာအသစ် လှမ်းထည့်သည်[cite: 3]
           BlocProvider.of<TransactionBloc>(context).add(
             AddTransactionRequested(
               categoryId: _selectedCategory!.id,
@@ -169,6 +199,10 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
               note: userNote,
             ),
           );
+
+          // 🎯 ၂။ [အဓိက ပြင်ဆင်ချက်] ဒေတာတွေ ကော၊ သက်ဆိုင်ရာ Category State တွေကော Live Update ဖြစ်စေရန် Event ၂ ခုလုံး ခေါ်ပေးရပါမယ်[cite: 3]
+          BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+          BlocProvider.of<CategoryBloc>(context).add(LoadCategories()); 
         }
         
         _amount = "0";
@@ -329,9 +363,9 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                     ],
                   ),
                 ),
-                if (_currentState == CategoryState.view ||
-                    _currentState == CategoryState.deleteConfirm)
-                  _buildBottomNavigationBar(),
+                // if (_currentState == CategoryState.view ||
+                //     _currentState == CategoryState.deleteConfirm)
+                //   _buildBottomNavigationBar(),
               ],
             );
           },
@@ -957,104 +991,4 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     );
   }
 
- // 📥 ပြင်ဆင်ပြီးသား _buildBottomNavigationBar Widget ဖြစ်ပါတယ်
-  Widget _buildBottomNavigationBar() {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double tabWidth = screenWidth / 5;
-    final List<IconData> navIcons = [
-      Icons.home_outlined, Icons.pie_chart_outline, Icons.add, Icons.assignment_outlined, Icons.person_outline,
-    ];
-    return Container(
-      width: screenWidth,
-      height: 65,
-      color: Colors.white, // Navigation Background အောက်ခြေ
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 0, right: 0, top: 0, bottom: 0,
-            child: CustomPaint(painter: NavCurvePainter(selectedIndex: _currentTabIndex, tabWidth: tabWidth)),
-          ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            left: (_currentTabIndex * tabWidth) + (tabWidth / 2) - 24,
-            top: -15,
-            child: Container(
-              width: 48, height: 48,
-              decoration: const BoxDecoration(
-                color: Color(0xFF8B5CF6), // 🎯 image_a16a17.png အတိုင်း Floating Circle ကို ခရမ်းရောင်ပြောင်းလဲထားသည်
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
-              ),
-              child: Icon(navIcons[_currentTabIndex], color: Colors.black, size: 26), // 🎯 Icon အရောင် အနက်
-            ),
-          ),
-          Positioned(
-            left: 0, right: 0, top: 0, bottom: 0,
-            child: Row(
-              children: List.generate(navIcons.length, (index) {
-                bool isSelected = _currentTabIndex == index;
-                return SizedBox(
-                  width: tabWidth,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () async {
-                      if (index == 3) {
-                        setState(() => _currentTabIndex = index);
-                        await Navigator.push(context, MaterialPageRoute(builder: (context) => const RecordHistoryScreen()));
-                        setState(() {
-                          _currentTabIndex = 2;
-                          _currentState = CategoryState.view;
-                        });
-                      } else {
-                        setState(() {
-                          _currentTabIndex = index;
-                          if (index == 2) _currentState = CategoryState.view;
-                        });
-                      }
-                    },
-                    child: Center(
-                      child: isSelected 
-                          ? const SizedBox.shrink() 
-                          : Icon(navIcons[index], size: 26, color: Colors.black), // 🎯 ပုံစံအတိုင်း Unselected Icons ကို အနက်ရောင်ပြောင်းထားသည်
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-class NavCurvePainter extends CustomPainter {
-  final int selectedIndex;
-  final double tabWidth;
-  NavCurvePainter({required this.selectedIndex, required this.tabWidth});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 🎯 ဒီနေရာမှာ အဖြူရောင် (Colors.white) သို့ ပြောင်းလဲလိုက်ပါတယ်ဗျာ
-    final Paint paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill; 
-      
-    final Path path = Path();
-    double startingX = selectedIndex * tabWidth;
-    path.moveTo(0, 0);
-    path.lineTo(startingX, 0);
-    path.cubicTo(startingX + (tabWidth * 0.15), 0, startingX + (tabWidth * 0.20), -22, startingX + (tabWidth * 0.50), -22);
-    path.cubicTo(startingX + (tabWidth * 0.80), -22, startingX + (tabWidth * 0.85), 0, startingX + tabWidth, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant NavCurvePainter oldDelegate) => 
-      oldDelegate.selectedIndex != selectedIndex || oldDelegate.tabWidth != tabWidth;
-}
+ }

@@ -1,3 +1,4 @@
+import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,9 @@ import 'package:expense_tracker/models/category_model.dart';
 enum CategoryState { view, add, edit, calculator } 
 
 class RecordHistoryScreen extends StatefulWidget {
-  const RecordHistoryScreen({Key? key}) : super(key: key);
+  // 🎯 onTabChanged callback ကို ထည့်သွင်းခြင်း
+  final ValueChanged<int>? onTabChanged;
+  const RecordHistoryScreen({Key? key, this.onTabChanged}) : super(key: key);
 
   @override
   State<RecordHistoryScreen> createState() => _RecordHistoryScreenState();
@@ -33,7 +36,6 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
     BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
   }
 
-  // 🎯 image_a3af19.png အတိုင်း တစ်တန်းလျှင် ၃ ခုစီဖြင့် Multi-select ရွေးချယ်နိုင်သော Bottom Sheet
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -45,7 +47,20 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
             List<CategoryItem> availableCategories = [];
             
             if (state is CategoryLoaded) {
+              // 🎯 ၁။ အကုန်လုံးကို အရင်ယူမယ်
               availableCategories = state.categories;
+
+              // 🎯 ၂။ Top Tab Filter (`_selectedFilter`) ပေါ်မူတည်ပြီး Category များကို စစ်ထုတ်ခြင်း
+              if (_selectedFilter == 'Expense') {
+                // Category Model ထဲမှာ type (သို့) ခွဲခြားနိုင်တဲ့ variable အပေါ်မူတည်ပြီး စစ်ထုတ်ပါမယ်
+                availableCategories = availableCategories
+                    .where((cat) => cat.type.toLowerCase() == 'expense')
+                    .toList();
+              } else if (_selectedFilter == 'Income') {
+                availableCategories = availableCategories
+                    .where((cat) => cat.type.toLowerCase() == 'income')
+                    .toList();
+              }
             }
 
             return Container(
@@ -78,7 +93,10 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
                   availableCategories.isEmpty
                       ? const Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Text("No categories found", style: TextStyle(color: Colors.grey)),
+                          child: Text(
+                            "No categories available for this type", 
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         )
                       : StatefulBuilder(
                           builder: (context, setSheetState) {
@@ -96,16 +114,15 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
                                 ),
                                 itemBuilder: (context, index) {
                                   final category = availableCategories[index];
-                                  // 🎯 ရွေးချယ်ထားသော List ထဲတွင် ရှိ/မရှိ စစ်ဆေးခြင်း
                                   bool isSelected = _selectedFilterCategories.contains(category.name);
 
                                   return InkWell(
                                     onTap: () {
                                       setSheetState(() {
                                         if (isSelected) {
-                                          _selectedFilterCategories.remove(category.name); // ရွေးပြီးသားကို ပြန်ဖြုတ်ရန်
+                                          _selectedFilterCategories.remove(category.name);
                                         } else {
-                                          _selectedFilterCategories.add(category.name);    // အသစ်ထပ်မံထည့်သွင်းရန်
+                                          _selectedFilterCategories.add(category.name);
                                         }
                                       });
                                     },
@@ -185,16 +202,45 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(), 
     );
   }
 
-  Widget _buildTopHeader() {
+  // Widget _buildTopHeader() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     children: [
+  //       GestureDetector(
+  //         onTap: () => Navigator.pop(context),
+  //         child: Container(
+  //           padding: const EdgeInsets.all(10),
+  //           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+  //           child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+  //         ),
+  //       ),
+  //       const Text(
+  //         "Transaction History",
+  //         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+  //       ),
+  //       Container(
+  //         padding: const EdgeInsets.all(10),
+  //         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+  //         child: const Icon(Icons.close, size: 18, color: Colors.black),
+  //       ),
+  //     ],
+  //   );
+  // }
+
+ Widget _buildTopHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            // 🎯 MainNavigationScreen ရဲ့ onTabChanged ဆီကို Index 0 (Home) လို့ လှမ်းပို့ပေးခြင်းဖြစ်ပါတယ်
+            if (widget.onTabChanged != null) {
+              widget.onTabChanged!(0); 
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
@@ -205,11 +251,7 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
           "Transaction History",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.close, size: 18, color: Colors.black),
-        ),
+        const SizedBox(width: 40), // ညာဘက်အချိုးညီအောင် နေရာချန်ခြင်း
       ],
     );
   }
@@ -514,104 +556,4 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
       },
     );
   }
-
-  Widget _buildBottomNavigationBar() {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double tabWidth = screenWidth / 5;
-    final List<IconData> navIcons = [
-      Icons.home_outlined, Icons.pie_chart_outline, Icons.add, Icons.assignment_outlined, Icons.person_outline,
-    ];
-    return Container(
-      width: screenWidth,
-      height: 65,
-      color: Colors.white,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 0, right: 0, top: 0, bottom: 0,
-            child: CustomPaint(painter: NavCurvePainter(selectedIndex: _currentTabIndex, tabWidth: tabWidth)),
-          ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            left: (_currentTabIndex * tabWidth) + (tabWidth / 2) - 24,
-            top: -15,
-            child: Container(
-              width: 48, height: 48,
-              decoration: const BoxDecoration(
-                color: Color(0xFF8B5CF6), 
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
-              ),
-              child: Icon(navIcons[_currentTabIndex], color: Colors.black, size: 26),
-            ),
-          ),
-          Positioned(
-            left: 0, right: 0, top: 0, bottom: 0,
-            child: Row(
-              children: List.generate(navIcons.length, (index) {
-                bool isSelected = _currentTabIndex == index;
-                return SizedBox(
-                  width: tabWidth,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () async {
-                      if (index == 3) {
-                        setState(() => _currentTabIndex = index);
-                        await Navigator.push(context, MaterialPageRoute(builder: (context) => const RecordHistoryScreen()));
-                        setState(() {
-                          _currentTabIndex = 2;
-                          _currentState = CategoryState.view;
-                        });
-                      } else {
-                        setState(() {
-                          _currentTabIndex = index;
-                          if (index == 2) _currentState = CategoryState.view;
-                        });
-                      }
-                    },
-                    child: Center(
-                      child: isSelected 
-                          ? const SizedBox.shrink() 
-                          : Icon(navIcons[index], size: 26, color: Colors.black),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class NavCurvePainter extends CustomPainter {
-  final int selectedIndex;
-  final double tabWidth;
-  NavCurvePainter({required this.selectedIndex, required this.tabWidth});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill; 
-      
-    final Path path = Path();
-    double startingX = selectedIndex * tabWidth;
-    path.moveTo(0, 0);
-    path.lineTo(startingX, 0);
-    path.cubicTo(startingX + (tabWidth * 0.15), 0, startingX + (tabWidth * 0.20), -22, startingX + (tabWidth * 0.50), -22);
-    path.cubicTo(startingX + (tabWidth * 0.80), -22, startingX + (tabWidth * 0.85), 0, startingX + tabWidth, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant NavCurvePainter oldDelegate) => 
-      oldDelegate.selectedIndex != selectedIndex || oldDelegate.tabWidth != tabWidth;
 }
