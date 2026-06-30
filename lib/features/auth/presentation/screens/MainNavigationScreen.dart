@@ -22,32 +22,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late final List<Widget> _pages;
 
   @override
-  void initState() {
-    super.initState();
+ @override
+void initState() {
+  super.initState();
+  
+  _pages = [
+    const HomeScreen(),           
+    const AnalyticsScreen(),     
+    const CategoryScreen(),     
     
-    // 🎯 _pages List ကို တည်ဆောက်ပြီး RecordHistoryScreen ထံ callback လှမ်းပေးပါသည်[cite: 2]
-    _pages = [
-      const HomeScreen(),           // Index 0
-      const AnalyticsScreen(),      // Index 1 (အစ်မထည့်ထားသော icon logic အတိုင်း)
-      const CategoryScreen(),       // Index 2 (Add icon နေရာ)
-      
-      // 🎯 Back Arrow နှိပ်လျှင် Home Tab (Index 0) သို့ Live ပြန်သွားစေမည့်အပိုင်း[cite: 2]
-      RecordHistoryScreen(
-        onTabChanged: (index) {
-          setState(() {
-            _currentTabIndex = index; // ⬅️ တကယ့် Tab Index ကို 0 (Home) သို့ ပြောင်းလဲပေးလိုက်ပါပြီ
-          });
-        },
-      ),                        // Index 3
-      
-      const ProfileScreen(),        // Index 4
-    ];
-  }
-
+    RecordHistoryScreen(
+      onTabChanged: (index) {
+        setState(() {
+          _currentTabIndex = index; 
+        });
+      },
+    ),                        
+    
+    const ProfileScreen(),       
+  ];
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🎯 IndexedStack ဖြင့် Screen ပြောင်းလဲမှုများကို ကိုင်တွယ်ပါသည်[cite: 2]
       body: IndexedStack(
         index: _currentTabIndex,
         children: _pages,
@@ -103,8 +100,6 @@ Widget _buildBottomNavigationBar() {
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
-                      // 🎯 [LIVE FIX] Navigator.push အဟောင်းတွေ လုံးဝမပါတော့ပါဘူး။ 
-                      // နှိပ်လိုက်တဲ့ Tab Index အတိုင်း တိုက်ရိုက် Live ပြောင်းလဲပေးမှာဖြစ်ပါတယ်
                       setState(() {
                         _currentTabIndex = index;
                         if (index == 2 || index == 3) {
@@ -112,7 +107,6 @@ Widget _buildBottomNavigationBar() {
                         }
                       });
 
-                      // History Tab (Index 3) ကို နှိပ်ရင် ဒေတာအသစ် Live ဆွဲခေါ်ရန်
                       if (index == 3) {
                         BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
                       }

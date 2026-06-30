@@ -1,4 +1,3 @@
-import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +23,6 @@ class RecordHistoryScreen extends StatefulWidget {
 class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
   String _selectedFilter = 'All'; 
   
-  // 🎯 ပြင်ဆင်ချက် - တစ်ခုထက်မက ကြိုက်သလောက်ရွေးချယ်မှုကို သိမ်းရန် List စနစ်ပြောင်းလဲခြင်း
   List<String> _selectedFilterCategories = []; 
   
   int _currentTabIndex = 3; 
@@ -47,12 +45,11 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
             List<CategoryItem> availableCategories = [];
             
             if (state is CategoryLoaded) {
-              // 🎯 ၁။ အကုန်လုံးကို အရင်ယူမယ်
+              
               availableCategories = state.categories;
 
-              // 🎯 ၂။ Top Tab Filter (`_selectedFilter`) ပေါ်မူတည်ပြီး Category များကို စစ်ထုတ်ခြင်း
               if (_selectedFilter == 'Expense') {
-                // Category Model ထဲမှာ type (သို့) ခွဲခြားနိုင်တဲ့ variable အပေါ်မူတည်ပြီး စစ်ထုတ်ပါမယ်
+      
                 availableCategories = availableCategories
                     .where((cat) => cat.type.toLowerCase() == 'expense')
                     .toList();
@@ -205,38 +202,13 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
     );
   }
 
-  // Widget _buildTopHeader() {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       GestureDetector(
-  //         onTap: () => Navigator.pop(context),
-  //         child: Container(
-  //           padding: const EdgeInsets.all(10),
-  //           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-  //           child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
-  //         ),
-  //       ),
-  //       const Text(
-  //         "Transaction History",
-  //         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-  //       ),
-  //       Container(
-  //         padding: const EdgeInsets.all(10),
-  //         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-  //         child: const Icon(Icons.close, size: 18, color: Colors.black),
-  //       ),
-  //     ],
-  //   );
-  // }
-
  Widget _buildTopHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
           onTap: () {
-            // 🎯 MainNavigationScreen ရဲ့ onTabChanged ဆီကို Index 0 (Home) လို့ လှမ်းပို့ပေးခြင်းဖြစ်ပါတယ်
+           
             if (widget.onTabChanged != null) {
               widget.onTabChanged!(0); 
             }
@@ -251,7 +223,7 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
           "Transaction History",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
-        const SizedBox(width: 40), // ညာဘက်အချိုးညီအောင် နေရာချန်ခြင်း
+        const SizedBox(width: 40), 
       ],
     );
   }
@@ -325,7 +297,7 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
         
         List<TransactionItem> list = [];
         if (state is TransactionLoaded) {
-          // 🎯 ပြင်ဆင်ချက် - ဒေတာများကို ပွားယူပြီးမှ စီစဥ်ရန်
+         
           list = List.from(state.transactions);
         }
 
@@ -335,7 +307,6 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
           list = list.where((t) => t.type == 'income').toList();
         }
 
-        // 🎯 ပြင်ဆင်ချက် - Multi-category Filter Logic (ရွေးချယ်ထားသော Category မျိုးစုံပါဝင်မှုရှိမရှိ စစ်ထုတ်ခြင်း)
         if (_selectedFilterCategories.isNotEmpty) {
           final categoryState = context.read<CategoryBloc>().state;
           if (categoryState is CategoryLoaded) {
@@ -348,8 +319,6 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
             }).toList();
           }
         }
-
-        // 🎯 ပြင်ဆင်ချက် - image_a39510.jpg အတိုင်း အသစ်ဆုံးထည့်လိုက်သော ဒေတာကို အပေါ်ဆုံးတွင် ထားရှိရန်
         list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
         double totalIncome = 0;
@@ -377,7 +346,6 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
             mainAxisSize: MainAxisSize.min, 
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🎯 ပြင်ဆင်ချက် - ရွေးချယ်ထားသမျှ Categories Chip အားလုံးကို အတန်းလိုက် Dynamic ဖော်ပြပေးရန်
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
