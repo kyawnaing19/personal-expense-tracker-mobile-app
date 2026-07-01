@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class RecordItem {
-  // edit လုပ်တဲ့အခါ တန်ဖိုးအသစ် အစားထိုးနိုင်ရန် final များကို ဖြုတ်လိုက်ပါသည်
-  String title;     // Category Name
-  String note;      // Note စာသား
-  String time;      // စာရင်းသွင်းချိန်
-  String amount;    // ငွေပမာဏ
-  String type;      // 'expense' သို့မဟုတ် 'income'
+  
+  String title;     
+  String note;      
+  String time;     
+  String amount;   
+  String type;     
   IconData icon;
   Color color;
 

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 class TransactionItem {
-  final String id;
-  final String categoryId;
-  final String categoryName;
-  final IconData categoryIcon;
-  final Color categoryColor;
-  final double amount;
-  final String note;
-  final String type; // 'expense' သို့မဟုတ် 'income'
-  final DateTime createdAt;
+  String id;
+  String categoryId;
+  String categoryName;
+  IconData categoryIcon;
+  Color categoryColor;
+  double amount;
+  String note;
+  String type; // 'expense' သို့မဟုတ် 'income'
+  DateTime createdAt;
 
   TransactionItem({
     required this.id,

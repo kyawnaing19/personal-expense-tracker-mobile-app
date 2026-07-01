@@ -1,10 +1,329 @@
-import 'package:expense_tracker/models/record_model.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:intl/intl.dart';
+// import 'package:expense_tracker/models/transaction_model.dart';
+// import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
+// import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
+
+// class TransactionDetailScreen extends StatefulWidget {
+//   final TransactionItem transaction;
+//   final String categoryName;
+//   final IconData categoryIcon;
+//   final Color categoryColor;
+
+//   const TransactionDetailScreen({
+//     Key? key,
+//     required this.transaction,
+//     required this.categoryName,
+//     required this.categoryIcon,
+//     required this.categoryColor,
+//   }) : super(key: key);
+
+//   @override
+//   State<TransactionDetailScreen> createState() => _TransactionDetailScreenState();
+// }
+
+// class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
+//   bool _isEditing = false;
+  
+//   // Controller များ
+//   late TextEditingController _amountController;
+//   late TextEditingController _noteController;
+
+//   // 🎯 Final Variable ပြဿနာကို ကျော်လွှားရန် Local Variables များဖြင့် ထိန်းသိမ်းခြင်း
+//   late double _currentAmount;
+//   late String _currentNote;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     // မူလတန်ဖိုးများကို Local Variable ထဲသို့ အရင်ထည့်ခြင်း
+//     _currentAmount = widget.transaction.amount;
+//     _currentNote = widget.transaction.note;
+
+//     _amountController = TextEditingController(text: _currentAmount.toInt().toString());
+//     _noteController = TextEditingController(text: _currentNote == "No note" ? "" : _currentNote);
+//   }
+
+//   @override
+//   void dispose() {
+//     _amountController.dispose();
+//     _noteController.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final formatter = NumberFormat('#,##0');
+//     final isExpense = widget.transaction.type == 'expense';
+
+//     return Scaffold(
+//       resizeToAvoidBottomInset: true,
+//       backgroundColor: Colors.white,
+//       appBar: PreferredSize(
+//         preferredSize: const Size.fromHeight(60),
+//         child: Container(
+//           color: const Color(0xFFE8DEF8), // AppBar Background
+//           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//           alignment: Alignment.bottomCenter,
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               // Back Arrow Button
+//               GestureDetector(
+//                 onTap: () => Navigator.pop(context),
+//                 child: Container(
+//                   padding: const EdgeInsets.all(10),
+//                   decoration: BoxDecoration(
+//                     color: Colors.white,
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+//                 ),
+//               ),
+//               Text(
+//                 _isEditing ? "Edit Transaction Details" : "Transaction Details",
+//                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+//               ),
+//               const SizedBox(width: 36, height: 36),
+//             ],
+//           ),
+//         ),
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             const SizedBox(height: 10),
+
+//             // Category Icon & Name Row
+//             Row(
+//               crossAxisAlignment: CrossAxisAlignment.center,
+//               children: [
+//                 const SizedBox(width: 40), 
+//                 CircleAvatar(
+//                   radius: 26,
+//                   backgroundColor: widget.categoryColor,
+//                   child: Icon(widget.categoryIcon, color: Colors.white, size: 26),
+//                 ),
+//                 const SizedBox(width: 40), 
+//                 Expanded(
+//                   child: Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Text(
+//                         widget.categoryName,
+//                         style: const TextStyle(fontSize: 16, color: Colors.black),
+//                       ),
+//                       if (_isEditing)
+//                         const Padding(
+//                           padding: EdgeInsets.only(right: 16.0),
+//                           child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
+//                         ),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             const SizedBox(height: 24),
+
+//             // 1. Type Row
+//             _buildDetailRow("Type", Text(isExpense ? "Expense" : "Income", style: const TextStyle(fontSize: 16, color: Colors.black38))),
+//             const SizedBox(height: 24),
+
+//             // 2. Amount Row
+//             _buildDetailRow(
+//               "Amount",
+//               _isEditing
+//                   ? TextField(
+//                       controller: _amountController,
+//                       keyboardType: TextInputType.number,
+//                       style: const TextStyle(fontSize: 16, color: Colors.black),
+//                       decoration: const InputDecoration(
+//                         border: InputBorder.none,
+//                         isDense: true,
+//                         contentPadding: EdgeInsets.zero,
+//                         suffixIcon: Padding(
+//                           padding: EdgeInsets.only(right: 16.0),
+//                           child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
+//                         ),
+//                       ),
+//                     )
+//                   : Text(formatter.format(_currentAmount), style: const TextStyle(fontSize: 16, color: Colors.black)),
+//             ),
+//             const SizedBox(height: 24),
+
+//             // 3. Date Row
+//             _buildDetailRow(
+//               "Date",
+//               Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(DateFormat('MMM d, yyyy').format(widget.transaction.createdAt.toLocal()), style: const TextStyle(fontSize: 16, color: Colors.black38)),
+//                   Text("(${DateFormat('HH:mm:ss').format(widget.transaction.createdAt.toLocal())})", style: const TextStyle(fontSize: 13, color: Colors.black38)),
+//                 ],
+//               ),
+//             ),
+//             const SizedBox(height: 24),
+
+//             // 4. Note Row
+//             _buildDetailRow(
+//               "Note",
+//               _isEditing
+//                   ? TextField(
+//                       controller: _noteController,
+//                       style: const TextStyle(fontSize: 16, color: Colors.black),
+//                       decoration: const InputDecoration(
+//                         border: InputBorder.none,
+//                         isDense: true,
+//                         contentPadding: EdgeInsets.zero,
+//                         suffixIcon: Padding(
+//                           padding: EdgeInsets.only(right: 16.0),
+//                           child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
+//                         ),
+//                       ),
+//                     )
+//                   : Text(_currentNote.isEmpty ? "No note" : _currentNote, style: const TextStyle(fontSize: 16, color: Colors.black)),
+//             ),
+            
+//             const Spacer(),
+
+//             // ခလုတ်များ (Cancel, Done / Edit, Delete)
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//               children: _isEditing
+//                   ? [
+//                       // Cancel ခလုတ်
+//                       _buildBottomButton(
+//                         label: "Cancel",
+//                         onPressed: () {
+//                           setState(() {
+//                             _isEditing = false;
+//                             _amountController.text = _currentAmount.toInt().toString();
+//                             _noteController.text = _currentNote == "No note" ? "" : _currentNote;
+//                           });
+//                         },
+//                       ),
+//                       // Done ခလုတ် (ဒီနေရာမှာ Error ပြင်ဆင်ပြီး ဖြစ်ပါသည်)
+//                       _buildBottomButton(
+//                         label: "Done",
+//                         onPressed: () {
+//                           final updatedAmount = double.tryParse(_amountController.text) ?? _currentAmount;
+//                           final updatedNote = _noteController.text.trim().isEmpty ? "No note" : _noteController.text.trim();
+
+//                           // 1. API/Database ဆီ ဒေတာအသစ် လှမ်းပို့ခြင်း
+//                           BlocProvider.of<TransactionBloc>(context).add(
+//                             UpdateTransactionRequested(
+//                               id: widget.transaction.id,
+//                               amount: updatedAmount,
+//                               note: updatedNote,
+//                             ),
+//                           );
+                          
+//                           // 2. History Screen အား ဒေတာသစ်ဖြင့် refresh လုပ်ခိုင်းခြင်း
+//                           BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+
+//                           // 3. 🎯 widget data အစား Local State Variables ကို ပြောင်းလဲပေးခြင်းဖြင့် Error ကို ဖြေရှင်းခြင်း
+//                           setState(() {
+//                             _currentAmount = updatedAmount;
+//                             _currentNote = updatedNote;
+//                             _isEditing = false;
+//                           });
+//                         },
+//                       ),
+//                     ]
+//                   : [
+//                       // Edit ခလုတ်
+//                       _buildBottomButton(
+//                         label: "Edit",
+//                         onPressed: () => setState(() => _isEditing = true),
+//                       ),
+//                       // Delete ခလုတ်
+//                       _buildBottomButton(
+//                         label: "Delete",
+//                         onPressed: () {
+//                           BlocProvider.of<TransactionBloc>(context).add(
+//                             DeleteTransactionRequested(widget.transaction.id)
+//                           );
+//                           BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+//                           Navigator.pop(context);
+//                         },
+//                       ),
+//                     ],
+//             ),
+//             const SizedBox(height: 20),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   // Align ညှိရန် ကူညီပေးမည့် Row Widget
+//   Widget _buildDetailRow(String title, Widget valueWidget) {
+//     return Row(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         const SizedBox(width: 40), 
+//         SizedBox(
+//           width: 92, 
+//           child: Text(
+//             title,
+//             style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.normal),
+//           ),
+//         ),
+//         Expanded(
+//           child: Padding(
+//             padding: const EdgeInsets.only(left: 12.0),
+//             child: valueWidget,
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+
+//   // အောက်ခြေခလုတ်ပုံစံ
+//   Widget _buildBottomButton({required String label, VoidCallback? onPressed}) {
+//     return SizedBox(
+//       width: 130,
+//       height: 42,
+//       child: ElevatedButton(
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: const Color(0xFF8B5CF6),
+//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//           elevation: 0,
+//         ),
+//         onPressed: onPressed,
+//         child: Text(
+//           label,
+//           style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:expense_tracker/models/transaction_model.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
-  final RecordItem item;
+  final TransactionItem transaction;
+  final String categoryName;
+  final IconData categoryIcon;
+  final Color categoryColor;
 
-  const TransactionDetailScreen({Key? key, required this.item}) : super(key: key);
+  const TransactionDetailScreen({
+    Key? key,
+    required this.transaction,
+    required this.categoryName,
+    required this.categoryIcon,
+    required this.categoryColor,
+  }) : super(key: key);
 
   @override
   State<TransactionDetailScreen> createState() => _TransactionDetailScreenState();
@@ -12,31 +331,23 @@ class TransactionDetailScreen extends StatefulWidget {
 
 class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   bool _isEditing = false;
-  late String _displayAmount;
-  late String _displayNote;
-  late String _currentCategoryName;
-  bool _hasPhoto = true;
+  
+  // Controller များ
   late TextEditingController _amountController;
   late TextEditingController _noteController;
 
-  // ပြင်ဆင်နေစဉ်အတွင်း expense/income ကို ခြေရာခံရန်
-  late bool isExpense;
+  // Local State Variables
+  late double _currentAmount;
+  late String _currentNote;
 
   @override
   void initState() {
     super.initState();
-    _displayAmount = widget.item.amount;
-    _displayNote = widget.item.note;
-    _currentCategoryName = widget.item.title;
-    
-    // မူလ amount ထဲက သင်္ကေတကိုကြည့်ပြီး expense လား income လား စစ်ခြင်း
-    isExpense = widget.item.type == 'expense';
+    _currentAmount = widget.transaction.amount;
+    _currentNote = widget.transaction.note;
 
-    // controller တွေထဲကို တန်ဖိုးအဟောင်း ထည့်ပေးထားခြင်း
-    // အမှတ်လက္ခဏာ (- / +) တွေ ဖြုတ်ပြီး နံပါတ်သီးသန့် controller ထဲထည့်ရန်
-    String cleanAmount = widget.item.amount.replaceAll('-', '').replaceAll('+', '').replaceAll(',', '');
-    _amountController = TextEditingController(text: cleanAmount);
-    _noteController = TextEditingController(text: _displayNote == "No note" ? "" : _displayNote);
+    _amountController = TextEditingController(text: _currentAmount.toInt().toString());
+    _noteController = TextEditingController(text: _currentNote == "No note" ? "" : _currentNote);
   }
 
   @override
@@ -48,202 +359,248 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context, true), // ပြန်ထွက်ရင် screen update ဖြစ်အောင် true ပို့ပေးမယ်
-        ),
-        title: Text(
-          _isEditing ? "Edit Transaction" : "Transaction Details",
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
-        actions: [
-          if (!_isEditing)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.black),
-              onPressed: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Top Card Displaying Amount and Category
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: widget.item.color,
-                    child: Icon(widget.item.icon, color: Colors.white, size: 28),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _currentCategoryName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // ပြင်ဆင်နေချိန်ဆိုလျှင် TextField ပြပြီး ပုံမှန်ဆိုလျှင် Text ပြပေးမည်
-                  _isEditing
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            DropdownButton<bool>(
-                              value: isExpense,
-                              items: const [
-                                DropdownMenuItem(value: true, child: Text("- (Expense)")),
-                                DropdownMenuItem(value: false, child: Text("+ (Income)")),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) setState(() => isExpense = val);
-                              },
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 150,
-                              child: TextField(
-                                controller: _amountController,
-                                keyboardType: TextInputType.number,
-                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                                decoration: const InputDecoration(hintText: "0.00"),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Text(
-                          _displayAmount,
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: _displayAmount.startsWith('+') ? Colors.green : Colors.black87,
-                          ),
-                        ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+    final formatter = NumberFormat('#,##0');
+    final isExpense = widget.transaction.type == 'expense';
 
-            // Detail Rows Card
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  _buildDetailRow(
-                    label: "Date & Time",
-                    child: Text(widget.item.time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          color: const Color(0xFFE8DEF8), // AppBar Background
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          alignment: Alignment.bottomCenter,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Back Arrow Button
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const Divider(height: 24),
-                  _buildDetailRow(
-                    label: "Note",
-                    child: _isEditing
-                        ? SizedBox(
-                            width: 200,
-                            child: TextField(
-                              controller: _noteController,
-                              style: const TextStyle(fontSize: 14),
-                              decoration: const InputDecoration(hintText: "Enter note..."),
+                  child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+                ),
+              ),
+              Text(
+                _isEditing ? "Edit Transaction Details" : "Transaction Details",
+                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(width: 36, height: 36),
+            ],
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+
+            // 🎯 Category Icon & Name Row (Category ဘေးမှ ခဲတံပုံ လုံးဝဖြုတ်လိုက်ပါပြီ)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 40), 
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: widget.categoryColor,
+                  child: Icon(widget.categoryIcon, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 40), 
+                Expanded(
+                  child: Text(
+                    widget.categoryName,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 1. Type Row
+            _buildDetailRow("Type", Text(isExpense ? "Expense" : "Income", style: const TextStyle(fontSize: 16, color: Colors.black38))),
+            const SizedBox(height: 24),
+
+            // 2. Amount Row (ခဲတံကို စာသားနှင့် တစ်တန်းတည်း ညာဘက်အစွန်းသို့ ရွှေ့ထားပါသည်)
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDetailRow(
+                    "Amount",
+                    _isEditing
+                        ? TextField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(fontSize: 16, color: Colors.black),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           )
-                        : Text(_displayNote, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        : Text(formatter.format(_currentAmount), style: const TextStyle(fontSize: 16, color: Colors.black)),
                   ),
-                  if (_hasPhoto) ...[
-                    const Divider(height: 24),
-                    _buildDetailRow(
-                      label: "Photo",
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: Image.asset(
-                              'assets/images/logo.jpg',
-                              width: 36,
-                              height: 36,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.image, color: Colors.grey),
-                            ),
-                          ),
-                          if (_isEditing)
-                            IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                              onPressed: () => setState(() => _hasPhoto = false),
-                            )
-                        ],
-                      ),
-                    ),
-                  ],
+                ),
+                if (_isEditing)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 3. Date Row
+            _buildDetailRow(
+              "Date",
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(DateFormat('MMM d, yyyy').format(widget.transaction.createdAt.toLocal()), style: const TextStyle(fontSize: 16, color: Colors.black38)),
+                  Text("(${DateFormat('HH:mm:ss').format(widget.transaction.createdAt.toLocal())})", style: const TextStyle(fontSize: 13, color: Colors.black38)),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Save / Done Button
-            if (_isEditing)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF38BDF8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            // 4. Note Row (ခဲတံကို စာသားနှင့် တစ်တန်းတည်း ညာဘက်အစွန်းသို့ ရွှေ့ထားပါသည်)
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDetailRow(
+                    "Note",
+                    _isEditing
+                        ? TextField(
+                            controller: _noteController,
+                            style: const TextStyle(fontSize: 16, color: Colors.black),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          )
+                        : Text(_currentNote.isEmpty ? "No note" : _currentNote, style: const TextStyle(fontSize: 16, color: Colors.black)),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      String prefix = isExpense ? '-' : '+';
-                      String finalAmountStr = _amountController.text.trim().isEmpty ? "0.00" : _amountController.text.trim();
-                      
-                      _displayAmount = "$prefix$finalAmountStr";
-                      _displayNote = _noteController.text.trim().isEmpty ? "No note" : _noteController.text.trim();
-                      _isEditing = false; 
-
-                      // 🔥 [အရေးကြီးဆုံးအပိုင်း] widget.item ထဲက data များကို တိုက်ရိုက် update လုပ်ပေးခြင်း
-                      widget.item.amount = _displayAmount;
-                      widget.item.note = _displayNote;
-                      widget.item.type = isExpense ? 'expense' : 'income';
-                    });
-                    
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Changes saved successfully!')),
-                    );
-                  },
-                  child: const Text("Done", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                 ),
-              ),
+                if (_isEditing)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
+                  ),
+              ],
+            ),
+            
+            const Spacer(),
+
+            // ခလုတ်များ (Cancel, Done / Edit, Delete)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: _isEditing
+                  ? [
+                      _buildBottomButton(
+                        label: "Cancel",
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = false;
+                            _amountController.text = _currentAmount.toInt().toString();
+                            _noteController.text = _currentNote == "No note" ? "" : _currentNote;
+                          });
+                        },
+                      ),
+                      _buildBottomButton(
+                        label: "Done",
+                        onPressed: () {
+                          final updatedAmount = double.tryParse(_amountController.text) ?? _currentAmount;
+                          final updatedNote = _noteController.text.trim().isEmpty ? "No note" : _noteController.text.trim();
+
+                          BlocProvider.of<TransactionBloc>(context).add(
+                            UpdateTransactionRequested(
+                              id: widget.transaction.id,
+                              amount: updatedAmount,
+                              note: updatedNote,
+                            ),
+                          );
+                          
+                          BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+
+                          setState(() {
+                            _currentAmount = updatedAmount;
+                            _currentNote = updatedNote;
+                            _isEditing = false;
+                          });
+                        },
+                      ),
+                    ]
+                  : [
+                      _buildBottomButton(
+                        label: "Edit",
+                        onPressed: () => setState(() => _isEditing = true),
+                      ),
+                      _buildBottomButton(
+                        label: "Delete",
+                        onPressed: () {
+                          BlocProvider.of<TransactionBloc>(context).add(
+                            DeleteTransactionRequested(widget.transaction.id)
+                          );
+                          BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow({required String label, required Widget child}) {
+  // Align ညှိရန် ကူညီပေးမည့် Row Widget
+  Widget _buildDetailRow(String title, Widget valueWidget) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
-        const SizedBox(width: 16),
-        Expanded(child: Align(alignment: Alignment.centerRight, child: child)),
+        const SizedBox(width: 40), 
+        SizedBox(
+          width: 92, 
+          child: Text(
+            title,
+            style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.normal),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: valueWidget,
+          ),
+        ),
       ],
+    );
+  }
+
+  // အောက်ခြေခလုတ်ပုံစံ
+  Widget _buildBottomButton({required String label, VoidCallback? onPressed}) {
+    return SizedBox(
+      width: 130,
+      height: 42,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF8B5CF6),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 0,
+        ),
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+        ),
+      ),
     );
   }
 }
