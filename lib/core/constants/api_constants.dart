@@ -1,6 +1,6 @@
 class ApiConstants {
   // static const String baseUrl = 'http://192.168.20.161:8000/api/v1';
-  static const String baseUrl = 'https://personal-expense-tracker-production-a78b.up.railway.app/api/v1';
+  static const String baseUrl = 'http://118.27.151.110/api/v1';
   
   // Auth
   static const String googleLogin = '/auth/google';

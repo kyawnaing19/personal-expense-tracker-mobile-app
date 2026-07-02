@@ -2,11 +2,13 @@ import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/category_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart' hide CategoryState;
-import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart' hide CategoryState;
+import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/AnalyticsScreen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/ProfileScreen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'category_states.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -16,43 +18,59 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentTabIndex = 0; // ကနဦး Index 0 (Home)
-  CategoryState _currentState = CategoryState.view; // Category State ကို ထိန်းရန်
+  int _currentTabIndex = 0; 
+  CategoryState _currentState = CategoryState.view; 
 
   late final List<Widget> _pages;
 
   @override
- @override
-void initState() {
-  super.initState();
-  
-  _pages = [
-    const HomeScreen(),           
-    const AnalyticsScreen(),     
-    const CategoryScreen(),     
+  void initState() {
+    super.initState();
     
-    RecordHistoryScreen(
-      onTabChanged: (index) {
-        setState(() {
-          _currentTabIndex = index; 
-        });
-      },
-    ),                        
-    
-    const ProfileScreen(),       
-  ];
-}
+    _pages = [
+      const HomeScreen(),           
+      const AnalyticsScreen(),
+      CategoryScreen(
+        onBackToHome: () {
+          setState(() {
+            _currentTabIndex = 0; 
+          });
+        },
+        onStateChanged: (state) {
+          setState(() {
+            _currentState = state; 
+          });
+        },
+      ),
+      RecordHistoryScreen(
+        onTabChanged: (index) {
+          setState(() {
+            _currentTabIndex = index;
+          });
+        },
+      ),
+      const ProfileScreen(),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    bool shouldHideNavBar = _currentTabIndex == 2 && (_currentState != CategoryState.view);
+
     return Scaffold(
+      backgroundColor: const Color(0xFFE8DEF8),
       body: IndexedStack(
         index: _currentTabIndex,
         children: _pages,
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: shouldHideNavBar 
+          ? const SizedBox.shrink() 
+          : _buildBottomNavigationBar(), // မူရင်း Nav Bar ကုဒ်ကို ချိတ်ဆက်ခေါ်ယူခြင်း 🎯
     );
   }
-Widget _buildBottomNavigationBar() {
+
+  // 🎯 မောင်လေး/ညီမလေး ပေးထားသော မူရင်း လှပသော Bottom Navigation Bar Widget အပြည့်အစုံ
+  Widget _buildBottomNavigationBar() {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double tabWidth = screenWidth / 5;
     
@@ -126,6 +144,7 @@ Widget _buildBottomNavigationBar() {
     );
   }
 }
+
 class NavCurvePainter extends CustomPainter {
   final int selectedIndex;
   final double tabWidth;
@@ -151,6 +170,5 @@ class NavCurvePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant NavCurvePainter oldDelegate) => 
-      oldDelegate.selectedIndex != selectedIndex || oldDelegate.tabWidth != tabWidth;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
