@@ -4,7 +4,6 @@ import 'package:expense_tracker/features/auth/presentation/screens/category_scre
 import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart' hide CategoryState;
 import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/features/auth/presentation/screens/AnalyticsScreen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/ProfileScreen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,7 +28,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     
     _pages = [
       const HomeScreen(),           
-      const AnalyticsScreen(),
+       //AnalyticsRecordPage(),
+  //      BlocProvider<AnalyticsBloc>(
+  //   create: (context) => AnalyticsBloc(context.read<AnalyticsRepository>()), // မိမိ Bloc ကို Inject လုပ်ပေးခြင်း
+  //   child: const AnalyticalRecordPage(),   // မိမိပြသမယ့် Screen widget
+  // ),
       CategoryScreen(
         onBackToHome: () {
           setState(() {

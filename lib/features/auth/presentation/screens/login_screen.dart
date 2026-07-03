@@ -1,4 +1,3 @@
-import 'package:expense_tracker/features/auth/presentation/screens/category_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,19 +11,12 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<AuthBloc, AuthState>(
-        // listener: (context, state) {
-        //   if (state is AuthAuthenticated) {
-        //     // ၁။ Login အောင်မြင်ရင် ပုံမှန်အတိုင်း CategoryScreen ကို တိုက်ရိုက် သွားမည်
-        //     Navigator.pushReplacement(
-        //       context,
-        //     MaterialPageRoute(builder: (context) => const CategoryScreen()),
-            
-        //     );
+      
         listener: (context, state) {
   if (state is AuthAuthenticated) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()), // 👈 HomeScreen သို့ ပြောင်းလဲ
+      MaterialPageRoute(builder: (context) => const HomeScreen()), 
     );
   }
           
@@ -38,7 +30,7 @@ class LoginScreen extends StatelessWidget {
           return Container(
             width: double.infinity,
             height: double.infinity,
-            // Figma အတိုင်း အပြာရောင် Gradient နောက်ခံ ပြုလုပ်ခြင်း
+           
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -155,7 +147,6 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-// ရုပ်ထွက်ပိုလှစေရန် တောက်ပမှုကို ထိန်းညှိဖို့ သုံးသော စာသားအရောင်
 extension on Colors {
   static const Color whiteEfficacy = Color(0xFFE0E8F9);
 }
