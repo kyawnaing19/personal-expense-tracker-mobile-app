@@ -13,4 +13,6 @@ class ApiConstants {
   // Transactions Endpoints 
   static const String transactions = '/transactions';
   static const String updateFcmToken = "http://118.27.151.110/api/v1/auth/fcm-token";
+
+  static const String analytics = '/reports/category-breakdown';
 }

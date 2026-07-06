@@ -203,7 +203,10 @@
 //   }
 // }
 
+import 'package:expense_tracker/features/auth/data/analytics_repository.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
+import 'package:expense_tracker/services/local_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -215,7 +218,7 @@ import 'package:expense_tracker/core/constants/api_constants.dart'; // 👈 API 
 import 'package:expense_tracker/features/auth/data/auth_repository.dart';
 import 'package:expense_tracker/features/auth/data/category_repository.dart';
 import 'package:expense_tracker/features/auth/data/transaction_repository.dart'; 
-import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart' hide AnalyticsBloc;
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
@@ -226,7 +229,18 @@ import 'package:expense_tracker/features/auth/presentation/screens/login_screen.
 void main() async {
   // Flutter binding ကို အစပြုခြင်း
   WidgetsFlutterBinding.ensureInitialized();
+ await Firebase.initializeApp(); // Firebase စတင်ခြင်း
 
+ await LocalNotificationService.initialize();
+
+  // ၂။ Foreground Listener ကို ထည့်ပါ
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    if (message.notification != null) {
+      // Pop-up တက်လာစေရန် ခေါ်ပေးခြင်း
+      LocalNotificationService.display(message);
+      print("Foreground မှာ Notification ရောက်လာပါတယ်: ${message.notification?.title}");
+    }
+  });
   // ၁။ Firebase ကို Initialize လုပ်ခြင်း
   try {
     await Firebase.initializeApp();
@@ -287,6 +301,9 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<TransactionRepository>(
           create: (context) => TransactionRepository(), 
         ),
+        RepositoryProvider<AnalyticsRepository>(
+  create: (context) => AnalyticsRepository(),
+),
       
       ],
       
@@ -307,6 +324,11 @@ class MyApp extends StatelessWidget {
               RepositoryProvider.of<TransactionRepository>(context),
             ), 
           ),
+          BlocProvider<AnalyticsBloc>(
+  create: (context) => AnalyticsBloc(
+    RepositoryProvider.of<AnalyticsRepository>(context),
+  ),
+),
         ],
       
         child: MaterialApp(

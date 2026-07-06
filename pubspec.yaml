@@ -47,6 +47,9 @@ dependencies:
   firebase_core: ^4.11.0
   firebase_messaging: ^16.4.1
   fl_chart: ^0.66.0
+  flutter_local_notifications: ^17.2.2
+  bloc_concurrency: 0.3.0
+  
   
 
 dev_dependencies:
