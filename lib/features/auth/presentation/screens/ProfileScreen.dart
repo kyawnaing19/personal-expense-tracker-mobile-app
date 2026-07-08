@@ -3,6 +3,7 @@
 // import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 // import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 // import 'package:expense_tracker/features/auth/presentation/screens/budget_screen.dart';
+// import 'package:expense_tracker/features/auth/presentation/screens/recurring_transaction_screen.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:share_plus/share_plus.dart';
@@ -20,10 +21,12 @@
 //       builder: (context, state) {
 //         String userName = "User";
 //         String userEmail = "email@example.com";
+//         String? userAvatar;
 
 //         if (state is AuthAuthenticated) {
 //           userName = state.user['name'] ?? "User";
 //           userEmail = state.user['email'] ?? "email@example.com";
+//           userAvatar = state.user['avatar']; // API ကပြန်ပေးတဲ့ avatar URL
 //         }
 
 //         return Scaffold(
@@ -39,10 +42,21 @@
 //                       CircleAvatar(
 //                         radius: 30,
 //                         backgroundColor: const Color(0xFF6200EE),
-//                         child: Text(
-//                           _getInitials(userName),
-//                           style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-//                         ),
+//                         backgroundImage: (userAvatar != null && userAvatar.isNotEmpty)
+//                             ? NetworkImage(userAvatar)
+//                             : null,
+//                         // avatar image ရှိရင် ပုံပြပါမယ်၊ မရှိ (သို့) load မရရင် initials ကို child မှာပြပါမယ်
+//                         onBackgroundImageError: (userAvatar != null && userAvatar.isNotEmpty)
+//                             ? (exception, stackTrace) {
+//                                 // image load မရရင် error ကို silently handle လုပ်ပြီး initials ပြန်ပြပါမယ်
+//                               }
+//                             : null,
+//                         child: (userAvatar == null || userAvatar.isEmpty)
+//                             ? Text(
+//                                 _getInitials(userName),
+//                                 style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+//                               )
+//                             : null,
 //                       ),
 //                       const SizedBox(width: 15),
 //                       Expanded(
@@ -74,7 +88,7 @@
 //     }
 //   },),
 //                         _buildMenuTile(context, Icons.account_balance_wallet_outlined, "Budget", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen())); }),
-//                         _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () { /* Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen())); */ }),
+//                         _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen()));  }),
 //                         _buildMenuTile(context, Icons.groups_outlined, "Create New Group", onTap: () { /* Navigator.push(context, MaterialPageRoute(builder: (_) => CreateGroupScreen())); */ }),
 //                         _buildMenuTile(context, Icons.logout_outlined, "Logout", isLogout: true, onTap: () {
 //                           context.read<AuthBloc>().add(LogoutRequested());
@@ -113,12 +127,12 @@
 //   }
 // }
 
-
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/budget_screen.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/recurring_transaction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
@@ -187,8 +201,10 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
                       children: [
                         _buildMenuTile(context, Icons.thumb_up_alt_outlined, "Recommend To Friends", onTap: () async {const String message = "This app is really great to use, give it a try!";
@@ -203,7 +219,7 @@ class ProfileScreen extends StatelessWidget {
     }
   },),
                         _buildMenuTile(context, Icons.account_balance_wallet_outlined, "Budget", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen())); }),
-                        _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () { /* Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen())); */ }),
+                        _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen()));  }),
                         _buildMenuTile(context, Icons.groups_outlined, "Create New Group", onTap: () { /* Navigator.push(context, MaterialPageRoute(builder: (_) => CreateGroupScreen())); */ }),
                         _buildMenuTile(context, Icons.logout_outlined, "Logout", isLogout: true, onTap: () {
                           context.read<AuthBloc>().add(LogoutRequested());

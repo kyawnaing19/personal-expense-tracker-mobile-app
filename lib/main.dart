@@ -1,11 +1,13 @@
 import 'package:expense_tracker/features/auth/data/analytics_repository.dart';
+import 'package:expense_tracker/features/auth/data/recurring_transaction_repository.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transaction_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/services/local_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:firebase_core/firebase_core.dart'; 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // 👈 Secure Storage အတွက် ထည့်ပါ
 import 'package:expense_tracker/core/network/dio_client.dart'; // 👈 Dio Client အတွက် ထည့်ပါ
@@ -106,6 +108,8 @@ class MyApp extends StatelessWidget {
     RepositoryProvider.of<CategoryRepository>(context),
   ),
 ),
+
+
       
       ],
       
@@ -135,6 +139,9 @@ class MyApp extends StatelessWidget {
   create: (context) => BudgetBloc(
     RepositoryProvider.of<BudgetRepository>(context),
   ),
+),
+BlocProvider<RecurringTransactionBloc>(
+  create: (_) => RecurringTransactionBloc(RecurringTransactionRepository()),
 ),
         ],
       

@@ -15,8 +15,12 @@ class ApiConstants {
   static const String updateFcmToken = "http://118.27.151.110/api/v1/auth/fcm-token";
 
   static const String analytics = '/reports/category-breakdown';
+  // ရှိပြီးသား analytics field ရဲ့ အနီးအနားမှာ ထည့်ပါ
+  static const String annualSummary = '/reports/annual-summary';
 
   // Budgets Endpoints
 static const String budgets = '/budgets';
 static const String budgetsOverview = '/reports/budgets-overview';
+
+static const String recurringTransactions = '/recurring-transactions';
 }
