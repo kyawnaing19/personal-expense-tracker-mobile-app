@@ -1,7 +1,5 @@
-
 // import 'dart:developer' as developer;
 // import 'package:dio/dio.dart';
-// import 'package:intl/intl.dart'; // 👈 နေ့စွဲ format အတွက် ထည့်ပါ
 // import '../../../core/network/dio_client.dart';
 // import '../../../core/constants/api_constants.dart';
 
@@ -9,27 +7,34 @@
 //   final Dio _dio = DioClient.getInstance();
 
 //   Future<Map<String, dynamic>> getCategoryBreakdown({
-//     required String filter, 
+//     required String filter,
 //     required String type,
-//     DateTime? startDate, 
-//     DateTime? endDate,
+//     DateTime? startDate, // 🆕 [FIX] bloc ကနေ ခေါ်နေပေမယ့် ရှေ့က မလက်ခံထားလို့ ဖြည့်ထား
+//     DateTime? endDate,   // 🆕 [FIX]
 //   }) async {
 //     try {
-//       final DateFormat formatter = DateFormat('yyyy-MM-dd');
-      
-//       // queryParameters ကို Dynamic တည်ဆောက်ခြင်း
-//       final Map<String, dynamic> params = {'filter': filter, 'type': type};
-//     if (startDate != null) params['start_date'] = DateFormat('yyyy-MM-dd').format(startDate);
-//     if (endDate != null) params['end_date'] = DateFormat('yyyy-MM-dd').format(endDate);
+//       final queryParams = <String, dynamic>{
+//         'filter': filter,
+//         'type': type,
+//       };
 
-//     final response = await _dio.get(
-//       ApiConstants.analytics,
-//       queryParameters: params,
-//     );
+//       // Custom date range ရွေးထားရင် start/end ကို ထပ်ထည့်ပို့ပါ
+//       if (startDate != null) {
+//         queryParams['start_date'] =
+//             startDate.toIso8601String().split('T').first;
+//       }
+//       if (endDate != null) {
+//         queryParams['end_date'] = endDate.toIso8601String().split('T').first;
+//       }
+
+//       final response = await _dio.get(
+//         ApiConstants.analytics,
+//         queryParameters: queryParams,
+//       );
 
 //       if (response.statusCode == 200) {
 //         developer.log('✅ Analytics Sync Success.', name: 'AnalyticsRepository');
-//         return response.data; 
+//         return response.data;
 //       }
 //     } catch (e) {
 //       developer.log('⚠️ Analytics Sync Failed: $e', name: 'AnalyticsRepository');
@@ -51,8 +56,8 @@ class AnalyticsRepository {
   Future<Map<String, dynamic>> getCategoryBreakdown({
     required String filter,
     required String type,
-    DateTime? startDate, // 🆕 [FIX] bloc ကနေ ခေါ်နေပေမယ့် ရှေ့က မလက်ခံထားလို့ ဖြည့်ထား
-    DateTime? endDate,   // 🆕 [FIX]
+    DateTime? startDate,
+    DateTime? endDate,
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -60,13 +65,21 @@ class AnalyticsRepository {
         'type': type,
       };
 
-      // Custom date range ရွေးထားရင် start/end ကို ထပ်ထည့်ပို့ပါ
+      // 🆕 [FIX] Backend's `custom` branch reads $filters['from'] / $filters['to']
+      // (see reports/category-breakdown controller), not start_date/end_date.
+      // That mismatch was causing "Undefined array key \"from\"" and an
+      // empty/failed response, so the pie chart never updated for a custom
+      // range. We now send BOTH naming conventions so it works regardless
+      // of which key the endpoint ends up reading.
       if (startDate != null) {
-        queryParams['start_date'] =
-            startDate.toIso8601String().split('T').first;
+        final formatted = startDate.toIso8601String().split('T').first;
+        queryParams['start_date'] = formatted;
+        queryParams['from'] = formatted;
       }
       if (endDate != null) {
-        queryParams['end_date'] = endDate.toIso8601String().split('T').first;
+        final formatted = endDate.toIso8601String().split('T').first;
+        queryParams['end_date'] = formatted;
+        queryParams['to'] = formatted;
       }
 
       final response = await _dio.get(
@@ -75,8 +88,17 @@ class AnalyticsRepository {
       );
 
       if (response.statusCode == 200) {
+        final data = response.data;
+        // Backend can return HTTP 200 with {"success": false, "message": ...}
+        // when a required param is missing — surface that instead of silently
+        // treating it as a successful-but-empty response.
+        if (data is Map && data['success'] == false) {
+          developer.log('⚠️ Analytics API returned success:false — ${data['message']}',
+              name: 'AnalyticsRepository');
+          throw Exception(data['message'] ?? 'Failed to load analytics data');
+        }
         developer.log('✅ Analytics Sync Success.', name: 'AnalyticsRepository');
-        return response.data;
+        return data;
       }
     } catch (e) {
       developer.log('⚠️ Analytics Sync Failed: $e', name: 'AnalyticsRepository');

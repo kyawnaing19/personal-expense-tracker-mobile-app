@@ -387,14 +387,32 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         children: [
           GestureDetector(
             onTap: () {
-              if (_currentState == CategoryState.view) {
-                if (widget.onBackToHome != null) widget.onBackToHome!();
-              } else if (_currentState == CategoryState.calendar) {
-                _updateState(CategoryState.calculator);
-              } else {
-                _updateState(CategoryState.view);
-              }
-            },
+            //   if (_currentState == CategoryState.view) {
+            //     if (widget.onBackToHome != null) widget.onBackToHome!();
+
+            //   } 
+              
+            //   else if (_currentState == CategoryState.calendar) {
+            //     _updateState(CategoryState.calculator);
+            //   } else {
+            //     _updateState(CategoryState.view);
+            //   }
+            // },
+            if (_currentState == CategoryState.view) {
+      if (widget.onBackToHome != null) {
+        widget.onBackToHome!(); 
+      } else {
+        
+        Navigator.pop(context); 
+      }
+    } else if (_currentState == CategoryState.calendar) {
+     
+      _updateState(CategoryState.calculator);
+    } else {
+    
+      _updateState(CategoryState.view);
+    }
+  },
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),

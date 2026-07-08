@@ -1,179 +1,3 @@
-// import 'package:expense_tracker/features/auth/data/analytics_repository.dart';
-// import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
-// import 'package:expense_tracker/features/auth/presentation/bloc/analytics_event.dart';
-// import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
-// import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
-// import 'package:expense_tracker/features/auth/presentation/screens/analytics_record_screen.dart';
-// import 'package:expense_tracker/features/auth/presentation/screens/category_screen.dart';
-// import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart' hide CategoryState;
-// import 'package:expense_tracker/features/auth/presentation/screens/record_history_screen.dart';
-// import 'package:flutter/material.dart';
-// import 'package:expense_tracker/features/auth/presentation/screens/ProfileScreen.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-
-// import 'category_states.dart';
-
-// class MainNavigationScreen extends StatefulWidget {
-//   const MainNavigationScreen({Key? key}) : super(key: key);
-
-//   @override
-//   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
-// }
-
-// class _MainNavigationScreenState extends State<MainNavigationScreen> {
-//   int _currentTabIndex = 0; 
-//   CategoryState _currentState = CategoryState.view; 
-
-//   late final List<Widget> _pages;
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//   _pages = [
-//   const HomeScreen(),           
-//  const AnalyticalRecordPage(),
-//   CategoryScreen(
-//     onBackToHome: () { setState(() { _currentTabIndex = 0; }); },
-//     onStateChanged: (state) { setState(() { _currentState = state; }); },
-//   ),
-//   RecordHistoryScreen(
-//     onTabChanged: (index) { setState(() { _currentTabIndex = index; }); },
-//   ),
-//   const ProfileScreen(),
-// ];
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     bool shouldHideNavBar = _currentTabIndex == 2 && (_currentState != CategoryState.view);
-
-//     return Scaffold(
-//       backgroundColor: const Color(0xFFE8DEF8),
-//       body: IndexedStack(
-//         index: _currentTabIndex,
-//         children: _pages,
-//       ),
-//       bottomNavigationBar: shouldHideNavBar 
-//           ? const SizedBox.shrink() 
-//           : _buildBottomNavigationBar(), // မူရင်း Nav Bar ကုဒ်ကို ချိတ်ဆက်ခေါ်ယူခြင်း 🎯
-//     );
-//   }
-
-//   // 🎯 မောင်လေး/ညီမလေး ပေးထားသော မူရင်း လှပသော Bottom Navigation Bar Widget အပြည့်အစုံ
-//   Widget _buildBottomNavigationBar() {
-//     final double screenWidth = MediaQuery.of(context).size.width;
-//     final double tabWidth = screenWidth / 5;
-    
-//     final List<IconData> navIcons = [
-//       Icons.home_outlined, 
-//       Icons.pie_chart_outline, 
-//       Icons.add, 
-//       Icons.assignment_outlined, 
-//       Icons.person_outline,
-//     ];
-
-//     return Container(
-//       width: screenWidth,
-//       height: 65,
-//       color: Colors.white, 
-//       child: Stack(
-//         clipBehavior: Clip.none,
-//         children: [
-//           Positioned(
-//             left: 0, right: 0, top: 0, bottom: 0,
-//             child: CustomPaint(painter: NavCurvePainter(selectedIndex: _currentTabIndex, tabWidth: tabWidth)),
-//           ),
-//           AnimatedPositioned(
-//             duration: const Duration(milliseconds: 300),
-//             curve: Curves.easeOutCubic,
-//             left: (_currentTabIndex * tabWidth) + (tabWidth / 2) - 24,
-//             top: -15,
-//             child: Container(
-//               width: 48, height: 48,
-//               decoration: const BoxDecoration(
-//                 color: Color(0xFF8B5CF6), 
-//                 shape: BoxShape.circle,
-//                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))],
-//               ),
-//               child: Icon(navIcons[_currentTabIndex], color: Colors.black, size: 26), 
-//             ),
-//           ),
-//           Positioned(
-//             left: 0, right: 0, top: 0, bottom: 0,
-//             child: Row(
-//               children: List.generate(navIcons.length, (index) {
-//                 bool isSelected = _currentTabIndex == index;
-//                 return SizedBox(
-//                   width: tabWidth,
-//                   child: GestureDetector(
-//                     behavior: HitTestBehavior.translucent,
-//                     onTap: () {
-//   setState(() {
-//     _currentTabIndex = index;
-//     if (index == 2 || index == 3) {
-//       _currentState = CategoryState.view;
-//     }
-//   });
-
-//   // 🎯 Analytics Tab (Index 1) ကို နှိပ်ရင် ဒေတာ Auto ဆွဲခိုင်းခြင်း
-//   if (index == 1) {
-//     BlocProvider.of<AnalyticsBloc>(context).add(
-//       FetchAnalyticsEvent(period: 'week', subPeriod: 'this', type: 'expense')
-//     );
-//   }
-
-//   if (index == 3) {
-//     BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
-//   }
-// },
-//                     child: Center(
-//                       child: isSelected 
-//                           ? const SizedBox.shrink() 
-//                           : Icon(navIcons[index], size: 26, color: Colors.black), 
-//                     ),
-//                   ),
-//                 );
-//               }),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class NavCurvePainter extends CustomPainter {
-//   final int selectedIndex;
-//   final double tabWidth;
-//   NavCurvePainter({required this.selectedIndex, required this.tabWidth});
-
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final Paint paint = Paint()
-//       ..color = Colors.white
-//       ..style = PaintingStyle.fill; 
-      
-//     final Path path = Path();
-//     double startingX = selectedIndex * tabWidth;
-//     path.moveTo(0, 0);
-//     path.lineTo(startingX, 0);
-//     path.cubicTo(startingX + (tabWidth * 0.15), 0, startingX + (tabWidth * 0.20), -22, startingX + (tabWidth * 0.50), -22);
-//     path.cubicTo(startingX + (tabWidth * 0.80), -22, startingX + (tabWidth * 0.85), 0, startingX + tabWidth, 0);
-//     path.lineTo(size.width, 0);
-//     path.lineTo(size.width, size.height);
-//     path.lineTo(0, size.height);
-//     path.close();
-//     canvas.drawPath(path, paint);
-//   }
-
-//   @override
-//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-// }
-
-import 'package:expense_tracker/features/auth/data/analytics_repository.dart';
-import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
-import 'package:expense_tracker/features/auth/presentation/bloc/analytics_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/analytics_record_screen.dart';
@@ -190,12 +14,28 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentTabIndex = 0;
   CategoryState _currentState = CategoryState.view;
+
+  // MainNavigationScreenState ထဲတွင် ထည့်ပါ
+void onTabTapped(int index) {
+  setState(() {
+    _currentTabIndex = index;
+    // Category သို့မဟုတ် Record History သို့သွားလျှင် State ပြန်ချိန်ပါ
+    if (index == 2 || index == 3) {
+      _currentState = CategoryState.view;
+    }
+  });
+  
+  // Analytics refresh logic
+  if (index == 1) {
+    _analyticsKey.currentState?.refreshCurrentSelection();
+  }
+}
 
   // 🆕 [FIX] Analytics page ရဲ့ state ကို ကိုယ်တိုင် ခေါ်ဖို့ GlobalKey
   final GlobalKey<AnalyticalRecordPageState> _analyticsKey =
@@ -217,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       RecordHistoryScreen(
         onTabChanged: (index) { setState(() { _currentTabIndex = index; }); },
       ),
-      const ProfileScreen(),
+      ProfileScreen(),
     ];
   }
 

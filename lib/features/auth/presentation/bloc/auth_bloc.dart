@@ -13,16 +13,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onCheckAuthStatus(
-    CheckAuthStatus event,
-    Emitter<AuthState> emit,
-  ) async {
-    final isLoggedIn = await _authRepository.isLoggedIn();
-    if (isLoggedIn) {
-      emit(AuthAuthenticated({}));
-    } else {
-      emit(AuthUnauthenticated());
+  CheckAuthStatus event,
+  Emitter<AuthState> emit,
+) async {
+  final isLoggedIn = await _authRepository.isLoggedIn();
+  if (isLoggedIn) {
+    try {
+      final user = await _authRepository.getCurrentUser(); // 👈 /auth/me ခေါ်ပြီး user data ယူမယ်
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthUnauthenticated()); // token invalid/expired ဖြစ်ရင်
     }
+  } else {
+    emit(AuthUnauthenticated());
   }
+}
 
   Future<void> _onGoogleLogin(
     GoogleLoginRequested event,

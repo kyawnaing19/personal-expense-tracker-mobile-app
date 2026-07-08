@@ -1,8 +1,6 @@
-
 import 'dart:async';
 import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'category_screen.dart'; 
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
