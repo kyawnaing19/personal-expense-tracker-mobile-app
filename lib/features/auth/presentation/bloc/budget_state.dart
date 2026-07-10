@@ -13,7 +13,6 @@ class BudgetLoaded extends BudgetStateBase {
   BudgetLoaded(this.budgets, {required this.month, required this.year});
 }
 
-// Emitted right after a successful create/update/delete, before the list reloads
 class BudgetActionSuccess extends BudgetStateBase {}
 
 class BudgetError extends BudgetStateBase {

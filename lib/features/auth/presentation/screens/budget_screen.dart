@@ -22,9 +22,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
   late int _month;
   late int _year;
 
-  // Single source of truth for whether the month/year filter box is
-  // visible. It starts closed and is ONLY ever flipped by the filter
-  // icon's onTap below — nothing else in this screen should set it.
   bool _showFilterPanel = false;
 
   @override

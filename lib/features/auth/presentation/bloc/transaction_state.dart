@@ -4,7 +4,7 @@ abstract class TransactionStateBase {}
 
 class TransactionInitial extends TransactionStateBase {}
 class TransactionLoading extends TransactionStateBase {}
-class TransactionActionSuccess extends TransactionStateBase {} // Submit အောင်မြင်မှုပြရန်
+class TransactionActionSuccess extends TransactionStateBase {} 
 
 class TransactionLoaded extends TransactionStateBase {
   final List<TransactionItem> transactions;

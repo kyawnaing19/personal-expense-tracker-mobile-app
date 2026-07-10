@@ -1,9 +1,9 @@
 abstract class AnalyticsEvent {}
 
 class FetchAnalyticsEvent extends AnalyticsEvent {
-  final String period; // 'week' သို့မဟုတ် 'month'
-  final String subPeriod; // 'this' သို့မဟုတ် 'last'
-  final String type; // 'expense' သို့မဟုတ် 'income'
+  final String period; 
+  final String subPeriod; 
+  final String type; 
    final DateTime? startDate; 
     final DateTime? endDate;   
 
@@ -17,5 +17,4 @@ class FetchAnalyticsEvent extends AnalyticsEvent {
   });
 }
 
-// analytics_event.dart ထဲတွင် အသစ်ထည့်ပါ
 class ResetAnalyticsEvent extends AnalyticsEvent {}

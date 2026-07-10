@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:expense_tracker/models/recurring_transaction_model.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
@@ -10,7 +9,6 @@ import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transa
 import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transaction_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transaction_state.dart';
 import 'package:expense_tracker/features/auth/data/recurring_transaction_repository.dart';
-
 import 'add_recurring_transaction_screen.dart';
 
 class RecurringTransactionsScreen extends StatefulWidget {
@@ -24,14 +22,8 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
   final Color primaryPurple = const Color(0xFF7F3DFF);
   final Color lightPurpleBg = const Color(0xFFEEE5FF);
 
-  // 'All' | 'Expense' | 'Income'
   String _selectedFilter = 'All';
   CategoryItem? _selectedFilterCategory;
-
-  // Every recurring transaction that currently exists on the backend,
-  // fetched with no filters. Used only to work out which categories are
-  // actually in use, so the filter sheet doesn't show the entire app's
-  // category list (that's Record History's job, not this screen's).
   final RecurringTransactionRepository _repository = RecurringTransactionRepository();
   List<RecurringTransactionItem> _allRecurringTransactions = [];
 
@@ -54,15 +46,12 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
             categoryId: _selectedFilterCategory?.id,
           ),
         );
-    // Keep the "which categories exist" source in sync after adds/edits/deletes.
     _loadCategoryOptions();
   }
 
   void _applyTypeFilter(String tab) {
     setState(() {
       _selectedFilter = tab;
-      // Category filter must stay consistent with the current type tab,
-      // same logic used in Transaction History.
       if (_selectedFilterCategory != null && tab != 'All' && _selectedFilterCategory!.type.toLowerCase() != tab.toLowerCase()) {
         _selectedFilterCategory = null;
       }
@@ -81,9 +70,6 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
           builder: (context, state) {
             List<CategoryItem> available = [];
             if (state is CategoryLoaded) {
-              // Only offer categories that actually appear in a recurring
-              // transaction -- not every category in the app (that list
-              // belongs to Record History's filter, not this one).
               final usedCategoryIds = _allRecurringTransactions.map((t) => t.categoryId).toSet();
               available = state.categories.where((c) => usedCategoryIds.contains(c.id)).toList();
               if (_selectedFilter != 'All') {
@@ -309,9 +295,9 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
       children: [
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(4),
+          //  height: 45,
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            child: Row(
+            child: Row( // Row does not have a 'height' property. It should be on the parent Container.
               children: ['All', 'Expense', 'Income'].map((tab) {
                 bool isSelected = _selectedFilter == tab;
                 return Expanded(
@@ -341,11 +327,6 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
     );
   }
 
-  /// "Next" should always read as a genuinely upcoming occurrence -- never
-  /// the cycle that just started today (or one that's already in the past,
-  /// which can happen if the backend's stored `next_run_date` goes stale
-  /// after an edit). So this walks forward from `startDate`, one frequency
-  /// step at a time, until it lands on a date strictly after today.
   DateTime _nextDisplayDate(RecurringTransactionItem item) {
     final today = DateTime.now();
     final todayOnly = DateTime(today.year, today.month, today.day);

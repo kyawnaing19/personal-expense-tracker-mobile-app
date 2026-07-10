@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:expense_tracker/models/recurring_transaction_model.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
@@ -12,7 +11,6 @@ import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transa
 import 'package:expense_tracker/features/auth/presentation/bloc/recurring_transaction_state.dart';
 
 class AddRecurringTransactionScreen extends StatefulWidget {
-  /// Pass an existing item to edit it; leave null to create a new one.
   final RecurringTransactionItem? existing;
 
   const AddRecurringTransactionScreen({Key? key, this.existing}) : super(key: key);
@@ -29,8 +27,9 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
   final _noteController = TextEditingController();
 
   CategoryItem? _selectedCategory;
-  String? _selectedFrequency; // daily | weekly | monthly
-  DateTime _startDate = DateTime.now();
+  String? _selectedFrequency; 
+  //DateTime _startDate = DateTime.now();
+  DateTime _startDate = DateTime.now().add(const Duration(days: 1));
 
   bool get _isEditing => widget.existing != null;
 
@@ -58,8 +57,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
           (c) => c.id == existing.categoryId,
           orElse: () => categoryState.categories.first,
         );
-        // The backend doesn't persist a transaction name, so there's nothing
-        // to restore here -- leave the field blank for the user to fill in.
+        
       }
     }
   }
@@ -110,10 +108,6 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
                               return InkWell(
                                 onTap: () {
                                   setState(() {
-                                    // Type follows the chosen category automatically.
-                                    // Transaction name is a free-text field the user
-                                    // fills in themselves -- it must never be
-                                    // overwritten with the category name.
                                     _selectedCategory = category;
                                   });
                                   Navigator.pop(context);
@@ -147,11 +141,11 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
   Future<void> _pickStartDate() async {
     final today = DateTime.now();
-    final firstSelectable = DateTime(today.year, today.month, today.day);
+   // final firstSelectable = DateTime(today.year, today.month, today.day);
+   final firstSelectable = DateTime(today.year, today.month, today.day).add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
       initialDate: _startDate.isBefore(firstSelectable) ? firstSelectable : _startDate,
-      // Only today and future dates are selectable -- past months/days are locked out.
       firstDate: firstSelectable,
       lastDate: DateTime(today.year + 5),
       builder: (context, child) {
@@ -188,10 +182,6 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
       },
     );
   }
-
-  /// Preview of the next few occurrence dates, stepped according to the
-  /// currently selected frequency (daily -> +1 day, weekly -> +7 days,
-  /// monthly -> +1 month each), starting from `_startDate`.
   String _upcomingDatesPreview() {
     final fmt = DateFormat('MMM d, yyyy');
     List<DateTime> dates;
@@ -218,7 +208,6 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
         ];
         break;
       default:
-        // No frequency chosen yet -- just show the start date itself.
         dates = [_startDate];
     }
     final joined = dates.map(fmt.format).join('  •  ');
@@ -268,6 +257,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEDE7F6),
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: BlocListener<RecurringTransactionBloc, RecurringTransactionStateBase>(
           listener: (context, state) {
@@ -277,74 +267,82 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                _buildTopHeader(),
-                const SizedBox(height: 24),
-                _buildLabel('Transaction Name'),
-                _buildTextField(controller: _nameController, hint: 'Please enter the transaction name'),
-                const SizedBox(height: 20),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, MediaQuery.of(context).viewInsets.bottom + 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildTopHeader(),
+                      const SizedBox(height: 20),
+                      _buildLabel('Transaction Name'),
+                      _buildTextField(controller: _nameController, hint: 'Please enter the transaction name'),
+                      const SizedBox(height: 14),
 
-                _buildLabel('Category'),
-                _buildDropdownLikeBox(
-                  onTap: _pickCategory,
-                  child: _selectedCategory == null
-                      ? const Text('Select category', style: TextStyle(color: Colors.black38))
-                      : Row(children: [
-                          CircleAvatar(radius: 12, backgroundColor: _selectedCategory!.color, child: Icon(_selectedCategory!.icon, size: 14, color: Colors.white)),
-                          const SizedBox(width: 8),
-                          Text(_selectedCategory!.name, style: const TextStyle(color: Colors.black)),
-                        ]),
-                ),
-                const SizedBox(height: 20),
+                      _buildLabel('Category'),
+                      _buildDropdownLikeBox(
+                        onTap: _pickCategory,
+                        child: _selectedCategory == null
+                            ? const Text('Select category', style: TextStyle(color: Colors.black38))
+                            : Row(children: [
+                                CircleAvatar(radius: 12, backgroundColor: _selectedCategory!.color, child: Icon(_selectedCategory!.icon, size: 14, color: Colors.white)),
+                                const SizedBox(width: 8),
+                                Text(_selectedCategory!.name, style: const TextStyle(color: Colors.black)),
+                              ]),
+                      ),
+                      const SizedBox(height: 14),
 
-                _buildLabel('Type'),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                  child: Text(
-                    _selectedCategory == null ? '-' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
-                    style: const TextStyle(color: Colors.black54),
+                      _buildLabel('Type'),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                        child: Text(
+                          _selectedCategory == null ? '-' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
+                          style: const TextStyle(color: Colors.black54),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      _buildLabel('Transaction Frequency'),
+                      _buildDropdownLikeBox(
+                        onTap: _pickFrequency,
+                        child: Text(
+                          _selectedFrequency == null ? 'Select frequency' : _selectedFrequency![0].toUpperCase() + _selectedFrequency!.substring(1),
+                          style: TextStyle(color: _selectedFrequency == null ? Colors.black38 : Colors.black),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      _buildLabel('Transaction Start Date'),
+                      _buildDropdownLikeBox(onTap: _pickStartDate, child: Text(DateFormat('MMMM d, yyyy').format(_startDate))),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          _upcomingDatesPreview(),
+                          style: const TextStyle(color: Colors.black38, fontSize: 11),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      _buildLabel('Amount'),
+                      _buildTextField(controller: _amountController, hint: '0', keyboardType: TextInputType.number),
+                      const SizedBox(height: 14),
+
+                      _buildLabel('Note'),
+                      _buildTextField(controller: _noteController, hint: 'Optional note'),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                _buildLabel('Transaction Frequency'),
-                _buildDropdownLikeBox(
-                  onTap: _pickFrequency,
-                  child: Text(
-                    _selectedFrequency == null ? 'Select frequency' : _selectedFrequency![0].toUpperCase() + _selectedFrequency!.substring(1),
-                    style: TextStyle(color: _selectedFrequency == null ? Colors.black38 : Colors.black),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                _buildLabel('Transaction Start Date'),
-                _buildDropdownLikeBox(onTap: _pickStartDate, child: Text(DateFormat('MMMM d, yyyy').format(_startDate))),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    _upcomingDatesPreview(),
-                    style: const TextStyle(color: Colors.black38, fontSize: 11),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                _buildLabel('Amount'),
-                _buildTextField(controller: _amountController, hint: '0', keyboardType: TextInputType.number),
-                const SizedBox(height: 20),
-
-                _buildLabel('Note'),
-                _buildTextField(controller: _noteController, hint: 'Optional note'),
-                const SizedBox(height: 32),
-
-                Row(
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Row(
                   children: [
                     Expanded(
                       child: SizedBox(
@@ -376,9 +374,8 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

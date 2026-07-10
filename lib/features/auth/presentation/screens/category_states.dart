@@ -1,2 +1,1 @@
-
 enum CategoryState { view, calculator, deleteConfirm, add, edit, calendar }

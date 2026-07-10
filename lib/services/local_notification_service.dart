@@ -12,7 +12,6 @@ class LocalNotificationService {
       android: initializationSettingsAndroid,
     );
 
-    // Error တက်တဲ့နေရာကို ဒီလိုပြင်ကြည့်ပါ
     await _notificationsPlugin.initialize(initializationSettings);
   }
 
@@ -22,8 +21,8 @@ class LocalNotificationService {
       'Expense Notifications',
       importance: Importance.max,
       priority: Priority.high,
-      sound: RawResourceAndroidNotificationSound('notification_sound'), // အသံဖိုင်နာမည် (extension မလို)
-      playSound: true,             // အသံဖွင့်ရန်
+      sound: RawResourceAndroidNotificationSound('notification_sound'), 
+      playSound: true,             
       enableVibration: true,
     );
 
@@ -31,7 +30,6 @@ class LocalNotificationService {
       android: androidNotificationDetails,
     );
 
-    // ID ကို int အဖြစ်သေချာသတ်မှတ်ပါ
     await _notificationsPlugin.show(
       DateTime.now().hashCode, 
       message.notification?.title,

@@ -1,4 +1,3 @@
-
 import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:expense_tracker/models/category_model.dart';
@@ -12,7 +11,6 @@ class CategoryRepository {
   final Dio _dio = DioClient.getInstance();
   final Box _cacheBox = Hive.box('categories_cache');
 
-  // Local DB သို့ Cache သိမ်းဆည်းခြင်း
   void _saveToLocalDB(List<CategoryItem> items) {
     final List<Map<String, dynamic>> rawList = items.map((item) => {
       'id': item.id,
@@ -25,7 +23,6 @@ class CategoryRepository {
     developer.log('📦 [LOCAL DB] Successfully cached ${items.length} items to Hive.', name: 'CategoryRepository');
   }
 
-  // Local DB မှ ဒေတာ ပြန်ထုတ်ခြင်း
   List<CategoryItem> _loadFromLocalDB() {
     final List<dynamic>? rawList = _cacheBox.get('cached_list');
     if (rawList == null) return [];
@@ -49,7 +46,6 @@ class CategoryRepository {
     }).toList();
   }
 
-  // 1. [GET] Categories
   Future<List<CategoryItem>> getCategories() async {
     final localData = _loadFromLocalDB();
     developer.log('⚡ [LOCAL DB LOAD] Found ${localData.length} items in Cache.', name: 'CategoryRepository');
@@ -91,7 +87,6 @@ class CategoryRepository {
     return localData;
   }
 
-  // 2. [POST] Create Category (⭐ Final Variable Assignment Error ပြဿနာကို ရှင်းထားပါသည်)
   Future<CategoryItem> createCategory({required String name, required IconData icon, required Color color, required String type}) async {
     final String tempId = DateTime.now().millisecondsSinceEpoch.toString();
     CategoryItem newItem = CategoryItem(id: tempId, name: name, icon: icon, color: color, type: type);
@@ -115,7 +110,6 @@ class CategoryRepository {
       final json = response.data['data'];
       String serverId = json['id'].toString();
 
-      // [FIXED] final မို့လို့ တိုက်ရိုက် Assign မလုပ်ဘဲ Server ID ဖြင့် Item အသစ်ပြန်လဲပြီး Cache ထဲသိမ်းခြင်း
       final listForUpdate = _loadFromLocalDB();
       final idx = listForUpdate.indexWhere((element) => element.id == tempId);
       if (idx != -1) {
@@ -131,7 +125,6 @@ class CategoryRepository {
     return newItem;
   }
 
-  // 3. [PUT] Update Category
   Future<void> updateCategory({required String id, required String name, required IconData icon, required Color color, required String type}) async {
     final currentList = _loadFromLocalDB();
     final index = currentList.indexWhere((element) => element.id == id);
@@ -158,13 +151,10 @@ class CategoryRepository {
   }
 
   Future<void> deleteCategory(String id) async {
-  // Local DB မှာ ကြိုဖျက်ထားတာကို ခေတ္တရပ်ဆိုင်းထားပါမယ် (Server က အိုကေမှ ဖျက်ဖို့)
-  // final currentList = _loadFromLocalDB();
 
   try {
     await _dio.delete('${ApiConstants.categories}/$id');
     
-    // Server မှာ အောင်မြင်စွာ ပျက်မှ Local Cache ထဲကပါ လိုက်ဖျက်မယ်
     final currentList = _loadFromLocalDB();
     currentList.removeWhere((element) => element.id.toString() == id.toString());
     _saveToLocalDB(currentList);
@@ -173,7 +163,6 @@ class CategoryRepository {
   } on DioException catch (e) {
     developer.log('⚠️ [SERVER ERROR] Cannot delete category: ${e.response?.statusCode}', name: 'CategoryRepository');
     
-    // Server က 500 ပြန်ရင် သေချာပေါက် ဒေတာရှိနေလို့ ဖြစ်တဲ့အတွက် Error Message ပေးလိုက်မယ်
     if (e.response?.statusCode == 500) {
       throw Exception("This category contains transactions and cannot be deleted.");
     }

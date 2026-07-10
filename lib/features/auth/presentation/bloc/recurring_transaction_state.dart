@@ -6,7 +6,6 @@ class RecurringTransactionInitial extends RecurringTransactionStateBase {}
 
 class RecurringTransactionLoading extends RecurringTransactionStateBase {}
 
-// Add / Update / Delete အောင်မြင်မှုပြရန်
 class RecurringTransactionActionSuccess extends RecurringTransactionStateBase {}
 
 class RecurringTransactionLoaded extends RecurringTransactionStateBase {

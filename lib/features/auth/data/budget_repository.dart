@@ -11,7 +11,6 @@ class BudgetRepository {
 
   BudgetRepository(this._categoryRepository);
 
-  // 1. [GET] Budgets overview for a given month/year
   Future<List<BudgetItem>> getBudgets({required int month, required int year}) async {
     try {
       final response = await _dio.get(
@@ -26,8 +25,6 @@ class BudgetRepository {
         return data.map((json) {
           BudgetItem item = BudgetItem.fromJson(json, month: month, year: year);
 
-          // The overview endpoint doesn't return category_id (needed for Edit/Update),
-          // so backfill it by matching the category name against the cached list.
           if (item.categoryId.isEmpty) {
             final match = categories.where(
               (c) => c.name.toLowerCase() == item.categoryName.toLowerCase(),
@@ -45,7 +42,6 @@ class BudgetRepository {
     return [];
   }
 
-  // 2. [POST] Create a new budget
   Future<void> createBudget({
     required String categoryId,
     required double amount,
@@ -71,7 +67,6 @@ class BudgetRepository {
     }
   }
 
-  // 3. [PUT] Update an existing budget (month cannot be changed)
   Future<void> updateBudget({
     required String id,
     required String categoryId,
@@ -94,7 +89,6 @@ class BudgetRepository {
     }
   }
 
-  // 4. [DELETE] Remove a budget
   Future<void> deleteBudget(String id) async {
     try {
       await _dio.delete('${ApiConstants.budgets}/$id');

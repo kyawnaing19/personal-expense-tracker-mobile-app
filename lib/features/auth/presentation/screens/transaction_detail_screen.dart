@@ -95,8 +95,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 10),
-
-            // 🎯 Category Icon & Name Row (Category ဘေးမှ ခဲတံပုံ လုံးဝဖြုတ်လိုက်ပါပြီ)
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -117,11 +115,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 1. Type Row
             _buildDetailRow("Type", Text(isExpense ? "Expense" : "Income", style: const TextStyle(fontSize: 16, color: Colors.black38))),
             const SizedBox(height: 24),
-
-            // 2. Amount Row (ခဲတံကို စာသားနှင့် တစ်တန်းတည်း ညာဘက်အစွန်းသို့ ရွှေ့ထားပါသည်)
             Row(
               children: [
                 Expanded(
@@ -150,7 +145,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 3. Date Row
             _buildDetailRow(
               "Date",
               Column(
@@ -162,8 +156,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // 4. Note Row (ခဲတံကို စာသားနှင့် တစ်တန်းတည်း ညာဘက်အစွန်းသို့ ရွှေ့ထားပါသည်)
             Row(
               children: [
                 Expanded(
@@ -191,8 +183,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             ),
             
             const Spacer(),
-
-            // ခလုတ်များ (Cancel, Done / Edit, Delete)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: _isEditing
@@ -220,7 +210,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         note: updatedNote,
       ),
     );
-    Navigator.pop(context); // Pop လုပ်ပြီး တန်းထွက်လိုက်ပါ
+    Navigator.pop(context); 
   },
 ),
                     ]
@@ -235,7 +225,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     BlocProvider.of<TransactionBloc>(context).add(
       DeleteTransactionRequested(widget.transaction.id)
     );
-    Navigator.pop(context); // Pop လုပ်ပြီး တန်းထွက်လိုက်ပါ
+    Navigator.pop(context); 
   },
 ),
                     ],
@@ -246,8 +236,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       ),
     );
   }
-
-  // Align ညှိရန် ကူညီပေးမည့် Row Widget
   Widget _buildDetailRow(String title, Widget valueWidget) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

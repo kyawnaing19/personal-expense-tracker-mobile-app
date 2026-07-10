@@ -20,10 +20,9 @@ class TransactionRepository {
     }
   }
 
-  // 2. [GET] Get All Transactions (With Filter Support)
   Future<List<TransactionItem>> getTransactions({Map<String, dynamic>? queryParams}) async {
     try {
-      // 🎯 Backend developer ပေးထားတဲ့ params တွေကို ဒီနေရာကနေ Dio ကတစ်ဆင့် လှမ်းပို့ပေးလိုက်ပါတယ်
+  
       final response = await _dio.get(
         ApiConstants.transactions,
         queryParameters: queryParams, 
@@ -50,7 +49,6 @@ class TransactionRepository {
     return [];
   }
 
-  // 3. [PUT/PATCH] Update Transaction
   Future<void> updateTransaction({required String id, required double amount, required String note}) async {
    try {
      await _dio.put('${ApiConstants.transactions}/$id', data: {'amount': amount.toInt(), 'note': note});
@@ -61,7 +59,6 @@ class TransactionRepository {
     }
   }
 
-  // 4. [DELETE] Delete Transaction
   Future<void> deleteTransaction(String id) async {
   try {
       await _dio.delete('${ApiConstants.transactions}/$id');

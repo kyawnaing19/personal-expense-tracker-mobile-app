@@ -63,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                           )
                         ],
                         image: const DecorationImage(
-                          image: AssetImage('assets/images/logo.jpg'), // logo.jpg လမ်းကြောင်း
+                          image: AssetImage('assets/images/logo.jpg'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -76,13 +76,12 @@ class LoginScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // စာသားကို အဖြူရောင်ပြောင်း
+                        color: Colors.white, 
                         letterSpacing: 0.5,
                       ),
                     ),
                     const SizedBox(height: 40),
 
-                    // ၄။ UI ထဲက Quote စာသားလေး
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.0),
                       child: Text(
@@ -99,7 +98,6 @@ class LoginScreen extends StatelessWidget {
                     
                     const Spacer(),
 
-                    // ၅။ Google Sign In Button အပိုင်း
                     state is AuthLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : ElevatedButton(

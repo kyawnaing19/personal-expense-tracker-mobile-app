@@ -1,6 +1,3 @@
-/// Model for a single Recurring Transaction record.
-/// Mirrors the JSON shape returned by the backend for
-/// GET/POST/PUT `/recurring-transactions`.
 class RecurringTransactionItem {
   final String id;
   final String categoryId;
@@ -41,8 +38,6 @@ class RecurringTransactionItem {
     );
   }
 
-  /// Human readable label for the frequency, matching the design
-  /// ("Every Month" / "Every Weekly" / "Every Daily").
   String get frequencyLabel {
     switch (frequency) {
       case 'daily':

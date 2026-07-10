@@ -10,12 +10,10 @@ class RecurringTransactionRepository {
 
   String _fmtDate(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
-  // 1. [POST] Create Recurring Transaction
-  // Backend: POST /recurring-transactions?amount=&category_id=&start_date=&frequency=
   Future<RecurringTransactionItem> createRecurringTransaction({
     required String categoryId,
     required double amount,
-    required String frequency, // daily | weekly | monthly
+    required String frequency, 
     required DateTime startDate,
     String? note,
   }) async {
@@ -38,10 +36,8 @@ class RecurringTransactionRepository {
     }
   }
 
-  // 2. [GET] List Recurring Transactions (optionally filtered by type / category)
-  // Backend: GET /recurring-transactions?type=expense&category={id}
   Future<List<RecurringTransactionItem>> getRecurringTransactions({
-    String? type, // 'expense' | 'income' -- omit / pass null for 'All'
+    String? type, 
     String? categoryId,
   }) async {
     try {
@@ -61,9 +57,6 @@ class RecurringTransactionRepository {
     }
     return [];
   }
-
-  // 3. [PUT] Update Recurring Transaction
-  // Backend: PUT /recurring-transactions/{id}
   Future<void> updateRecurringTransaction({
     required String id,
     required String categoryId,
@@ -90,8 +83,6 @@ class RecurringTransactionRepository {
     }
   }
 
-  // 4. [DELETE] Delete Recurring Transaction
-  // Backend: DELETE /recurring-transactions/{id}
   Future<void> deleteRecurringTransaction(String id) async {
     try {
       await _dio.delete('${ApiConstants.recurringTransactions}/$id');
