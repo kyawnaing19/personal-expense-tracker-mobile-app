@@ -1,11 +1,18 @@
+import 'package:expense_tracker/features/auth/presentation/screens/group_expense_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../models/group_model.dart';
+import '../../../../models/expense_model.dart';
+import '../../data/expense_repository.dart';
 import '../bloc/group_bloc.dart';
 import '../bloc/group_event.dart';
 import '../bloc/group_state.dart';
+import '../bloc/expense_bloc.dart';
+import '../bloc/expense_event.dart';
+import '../bloc/expense_state.dart';
 import 'group_settings_screen.dart';
+import 'create_expense_screen.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
 const Color kGroupPurple = Color(0xFF6200EE);
@@ -20,17 +27,44 @@ class GroupDetailScreen extends StatefulWidget {
 
 class _GroupDetailScreenState extends State<GroupDetailScreen> {
   late GroupModel _group;
+  late final ExpenseBloc _expenseBloc;
 
   @override
   void initState() {
     super.initState();
     _group = widget.group;
+    _expenseBloc = ExpenseBloc(ExpenseRepository());
     // member list, join_code စတာတွေအပါအဝင် အသေးစိတ်ကို ခေါ်မယ်
     context.read<GroupBloc>().add(LoadGroupDetail(id: _group.id));
+    // Expense Transactions list ကို ခေါ်မယ်
+    _expenseBloc.add(LoadGroupExpenses(groupId: _group.id));
+  }
+
+  @override
+  void dispose() {
+    _expenseBloc.close();
+    super.dispose();
   }
 
   void _refresh() {
     context.read<GroupBloc>().add(LoadGroupDetail(id: _group.id));
+    _expenseBloc.add(LoadGroupExpenses(groupId: _group.id));
+  }
+
+  // + FAB ကနေ Create Expense form ကိုသွားမယ် - ExpenseBloc instance တူတူ
+  // ဆက်သုံးအောင် BlocProvider.value နဲ့ ပို့ပေးမယ် (create success ဖြစ်ရင်
+  // list ကို auto refresh လုပ်ပြီးသားမို့ ဒီနေရာမှာ ထပ် _refresh() လုပ်စရာ
+  // မလိုပါဘူး)
+  Future<void> _openCreateExpense() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider<ExpenseBloc>.value(
+          value: _expenseBloc,
+          child: CreateExpenseScreen(group: _group),
+        ),
+      ),
+    );
   }
 
   // "Group Expenses" ခေါင်းစီးဘေးက person-add icon ကို နှိပ်ရင်
@@ -153,13 +187,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider<ExpenseBloc>.value(
+      value: _expenseBloc,
+      child: Scaffold(
       backgroundColor: kGroupBg,
       floatingActionButton: FloatingActionButton(
         backgroundColor: kGroupPurple,
-        onPressed: () {
-          // TODO: expense add flow - ဆက်လက်ဆောင်ရွက်ရန်
-        },
+        onPressed: _openCreateExpense,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
@@ -275,25 +309,87 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  // TODO: expense list state - ဆက်လက်ဆောင်ရွက်ရန်
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.receipt_long_outlined,
-                            size: 36, color: Colors.grey[400]),
-                        const SizedBox(height: 10),
-                        Text(
-                          'No expenses or group members yet. Start\nadding expenses to track balance.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                        ),
-                      ],
+                  Expanded(
+                    child: BlocConsumer<ExpenseBloc, ExpenseStateBase>(
+                      bloc: _expenseBloc,
+                      listener: (context, expenseState) {
+                        // Fetch/parse fail ဖြစ်ရင် "No expenses" empty box
+                        // အဖြစ် silent ဖျောက်မထားဘဲ error ကို ပြပေးမယ် -
+                        // ဒါမှ backend response shape (field name / wrapper)
+                        // မှားနေတာကို debug လုပ်လို့ရမယ်
+                        if (expenseState is ExpenseError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Expense list load error: ${expenseState.message}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      builder: (context, expenseState) {
+                        if (expenseState is ExpenseListLoading ||
+                            expenseState is ExpenseInitial) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        if (expenseState is ExpenseListLoaded &&
+                            expenseState.expenses.isNotEmpty) {
+                          return ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: expenseState.expenses.length,
+                            // ignore: unnecessary_underscores
+                            separatorBuilder: (_, __) => const SizedBox(height: 10),
+                            itemBuilder: (context, i) {
+  final exp = expenseState.expenses[i];
+  return GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider<ExpenseBloc>.value(
+            value: _expenseBloc,
+            child: GroupExpenseDetailScreen(
+              expenseId: exp.id,
+              groupId: _group.id,
+              group: _group, 
+            ),
+          ),
+        ),
+      );
+       _refresh(); // delete ဖြစ်ရင် list ပြန်ဆွဲ
+    },
+    child: _ExpenseCard(expense: exp),
+  );
+},
+                          );
+                        }
+                        // expense array မရှိသေးရင် (group ကို create
+                        // အသစ်လုပ်ထားတာ / expense တစ်ခုမှ မထည့်ရသေးရင်)
+                        // empty-state card ကိုပြမယ်
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.receipt_long_outlined,
+                                  size: 36, color: Colors.grey[400]),
+                              const SizedBox(height: 10),
+                              Text(
+                                'No expenses or group members yet. Start\nadding expenses to track balance.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.grey[500], fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -301,6 +397,143 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             );
           },
         ),
+      ),
+      ),
+    );
+  }
+}
+
+// ---------------- Expense Transaction card ----------------
+
+const List<Color> _kAvatarColors = [
+  Color(0xFF6200EE), // purple
+  Color(0xFF9B59B6),
+  Color(0xFF8E44AD),
+  Color(0xFF3949AB),
+];
+
+Color _avatarColorFor(String seed) {
+  if (seed.isEmpty) return _kAvatarColors[0];
+  final idx = seed.codeUnitAt(0) % _kAvatarColors.length;
+  return _kAvatarColors[idx];
+}
+
+class _ExpenseCard extends StatelessWidget {
+  final ExpenseModel expense;
+  const _ExpenseCard({required this.expense});
+
+  String _formatNumber(int n) {
+    final s = n.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(s[i]);
+    }
+    return buffer.toString();
+  }
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
+  String _formatTime(DateTime? d) {
+    if (d == null) return '';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final mm = d.minute.toString().padLeft(2, '0');
+    final ss = d.second.toString().padLeft(2, '0');
+    return '$hh:$mm:$ss';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final payerName = expense.paidBy?.name ?? '';
+    final participants = expense.participants;
+    // avatar circle max 3ခု ပြပြီး ကျန်တာကို "+N" badge နဲ့ပြမယ် (Image 6)
+    final visible = participants.take(3).toList();
+    final extra = participants.length - visible.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: _avatarColorFor(payerName),
+            child: Text(
+              payerName.isNotEmpty ? payerName[0].toUpperCase() : '?',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(expense.description.isNotEmpty
+                    ? expense.description
+                    : '(no description)',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 2),
+                Text(
+                  '${_formatDate(expense.expenseDate)}   ${_formatTime(expense.createdAt)}',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(_formatNumber(expense.amount),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              SizedBox(
+                height: 24,
+  width: 24.0 + 16.0 * (visible.length - 1 + (extra > 0 ? 1 : 0)).clamp(0, 3),
+  child: Stack(
+    clipBehavior: Clip.none,
+                  children: [
+                    for (int i = 0; i < visible.length; i++)
+                      Positioned(
+                        right: i * 16.0,
+                        child: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: _avatarColorFor(visible[i].name),
+                          child: Text(
+                            visible[i].initial,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    if (extra > 0)
+                      Positioned(
+                        right: visible.length * 16.0,
+                        child: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.grey[400],
+                          child: Text('+$extra',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 9)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -319,13 +552,6 @@ class _GenerateInviteCodeDialog extends StatefulWidget {
 
 class _GenerateInviteCodeDialogState
     extends State<_GenerateInviteCodeDialog> {
-  // Bloc ရဲ့ "current state" ကိုပဲမမှီခိုပဲ code ကို local state အနေနဲ့
-  // ကိုယ်တိုင်မှတ်ထားမယ်။ JoinCodeGenerated ရောက်ပြီးတဲ့နောက်
-  // GroupLoaded ကို ချက်ချင်းထပ်ပို့တာကြောင့် code စာသား
-  // ချက်ချင်းပျောက်သွားတဲ့ bug ကို ဒီလိုမှတ်ထားခြင်းနဲ့ ကာကွယ်တယ်
-  String? _code;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
@@ -348,26 +574,13 @@ class _GenerateInviteCodeDialogState
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: BlocListener<GroupBloc, GroupStateBase>(
-        listener: (context, state) {
-          if (state is GroupLoading) {
-            setState(() => _isLoading = true);
-          } else if (state is JoinCodeGenerated &&
-              state.group.id == widget.groupId) {
-            // code ကိုရလာတာနဲ့ local state ထဲ သိမ်းထားမယ် -
-            // ဒါမှသာ နောက်ပိုင်း GroupLoaded state ရောက်လာလည်း
-            // ဒီ popup ပေါ်က code စာသားက ပျောက်မသွားတော့ဘူး
-            setState(() {
-              _code = state.group.joinCode;
-              _isLoading = false;
-            });
-          } else if (state is GroupError) {
-            setState(() => _isLoading = false);
+      child: BlocBuilder<GroupBloc, GroupStateBase>(
+        builder: (context, state) {
+          String? code;
+          bool isLoading = state is GroupLoading;
+          if (state is JoinCodeGenerated && state.group.id == widget.groupId) {
+            code = state.group.joinCode;
           }
-        },
-        child: Builder(builder: (context) {
-          final String? code = _code;
-          final bool isLoading = _isLoading;
 
           return Padding(
             padding: const EdgeInsets.all(20),
@@ -454,7 +667,7 @@ class _GenerateInviteCodeDialogState
               ],
             ),
           );
-        }),
+        },
       ),
     );
   }

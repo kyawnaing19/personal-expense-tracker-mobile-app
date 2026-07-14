@@ -1,4 +1,7 @@
 import 'package:expense_tracker/core/services/current_user_service..dart';
+import 'package:expense_tracker/features/auth/data/balance_repository.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/balance_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/members_balance_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../models/group_model.dart';
@@ -260,15 +263,18 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     _SettingsRowButton(
                       label: "Members' Balance",
                       onTap: () {
+                        Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => BalanceBloc(BalanceRepository()),
+          child: MembersBalanceScreen(groupId: _group.id),
+        ),
+      ),
+    );
                       },
                     ),
-                    const SizedBox(height: 12),
-                    _SettingsRowButton(
-                      label: 'Settle Debt',
-                      onTap: () {
-                      },
-                    ),
-
+                    
                     if (_isAdmin) ...[
                       const SizedBox(height: 28),
                       SizedBox(

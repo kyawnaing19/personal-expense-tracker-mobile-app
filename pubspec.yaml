@@ -58,7 +58,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   hive_generator: ^2.0.1
-  build_runner: ^2.4.8    
+  build_runner: ^2.4.8 
+  flutter_launcher_icons: ^0.13.1 
   
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -83,6 +84,12 @@ flutter:
   assets:
     - assets/images/logo.jpg
     - assets/images/group_illustration.jpg
+    - assets/images/onboarding1.jpg
+    - assets/images/onboarding2.jpg
+    - assets/images/onboarding3.jpg
+    - assets/images/onboarding4.jpg
+    - assets/images/onboarding5.jpg
+    - assets/icon/app_icon.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -109,3 +116,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.jpg"
+  min_sdk_android: 21 # အနည်းဆုံး လိုအပ်တဲ့ Android version

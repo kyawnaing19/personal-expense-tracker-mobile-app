@@ -1,6 +1,7 @@
 class ApiConstants {
   // static const String baseUrl = 'http://192.168.20.161:8000/api/v1';
-  static const String baseUrl = 'http://118.27.151.110/api/v1';
+  //static const String baseUrl = 'http://118.27.151.110/api/v1';
+  static const String baseUrl = 'https://api.shweeshaungexpensetracker.website/api/v1';
   
   // Auth
   static const String googleLogin = '/auth/google';
@@ -12,7 +13,7 @@ class ApiConstants {
 
   // Transactions Endpoints
   static const String transactions = '/transactions';
-  static const String updateFcmToken = "http://118.27.151.110/api/v1/auth/fcm-token";
+  static const String updateFcmToken = "https://api.shweeshaungexpensetracker.website/api/v1/auth/fcm-token";
 
   static const String analytics = '/reports/category-breakdown';
   static const String annualSummary = '/reports/annual-summary';
@@ -37,4 +38,26 @@ class ApiConstants {
   static String groupJoinCode(String id) => '/groups/$id/join-code';
   static const String groupJoin = '/groups/join';
 
+  // Group Expense endpoints
+  static const String groupExpenses = '/group-expenses';
+  static String groupExpenseDetail(String id) => '/group-expenses/$id';
+  static String groupExpensesList(String groupId) =>'/groups/$groupId/expenses';
+  
+
+  //Group member balance
+  static String groupBalance(String id) => '/groups/$id/balance';
+  static String groupMemberBalanceDetails(String groupId, String userId) =>'/groups/$groupId/balance/$userId/details';
+
+ 
+  // Settle Debt Endpoints 
+  static const String mySplits = '/groups/expenses/splits';
+  static String claimPayment(String splitId) =>'/expense-splits/$splitId/claim-payment';
+ 
+// Settlement / Debt Requests endpoints
+  static const String settlementRequests = '/settlement-requests';
+  static String confirmSettlementRequest(String id) =>'/settlement-requests/$id/confirm';
+  static String rejectSettlementRequest(String id) =>'/settlement-requests/$id/reject';
+
+// ှSettlement History
+static String groupMemberBalanceHistory(String groupId, String userId) =>'/groups/$groupId/balance/$userId/history';
 }

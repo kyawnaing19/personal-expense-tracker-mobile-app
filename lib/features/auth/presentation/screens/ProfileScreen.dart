@@ -3,8 +3,10 @@ import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart'
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/budget_screen.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/debt_requests_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/group_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/recurring_transaction_screen.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/settle_debt_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
@@ -79,16 +81,18 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         _buildMenuTile(context, Icons.thumb_up_alt_outlined, "Recommend To Friends", onTap: () async {const String message = "This app is really great to use, give it a try!";
                         await Share.share(message);}),
-                        _buildMenuTile(context, Icons.grid_view_rounded, "Categories", onTap: () {
+  //                       _buildMenuTile(context, Icons.grid_view_rounded, "Categories", onTap: () {
 
-    final mainNav = context.findAncestorStateOfType<MainNavigationScreenState>();
-    if (mainNav != null) {
-      mainNav.onTabTapped(2); 
-    }
-  },),
+  //   final mainNav = context.findAncestorStateOfType<MainNavigationScreenState>();
+  //   if (mainNav != null) {
+  //     mainNav.onTabTapped(2); 
+  //   }
+  // },),
                         _buildMenuTile(context, Icons.account_balance_wallet_outlined, "Budget", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen())); }),
                         _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen()));  }),
-                        _buildMenuTile(context, Icons.groups_outlined, "Create New", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => GroupsScreen())); }),
+                        _buildMenuTile(context, Icons.groups_outlined, "Groups", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => GroupsScreen())); }),
+                        _buildMenuTile(context, Icons.handshake_outlined, "Settle Debt", onTap: () {   Navigator.push(context, MaterialPageRoute(builder: (_) => SettleDebtScreen()));  }),
+                        _buildMenuTile(context, Icons.attach_money_outlined, "Debt Requests", onTap: () {   Navigator.push(context, MaterialPageRoute(builder: (_) => DebtRequestsScreen()));  }),
                         _buildMenuTile(context, Icons.logout_outlined, "Logout", isLogout: true, onTap: () {
                           context.read<AuthBloc>().add(LogoutRequested());
                         }),

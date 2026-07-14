@@ -216,7 +216,7 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
             Container(
               width: 40,
               height: 40,
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),

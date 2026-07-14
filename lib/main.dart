@@ -1,4 +1,5 @@
 import 'package:expense_tracker/features/auth/data/analytics_repository.dart';
+import 'package:expense_tracker/features/auth/data/expense_split_repository.dart';
 import 'package:expense_tracker/features/auth/data/group_repository.dart';
 import 'package:expense_tracker/features/auth/data/recurring_transaction_repository.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
@@ -26,8 +27,6 @@ import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc
 import 'package:expense_tracker/features/auth/presentation/screens/login_screen.dart';
 import 'package:expense_tracker/features/auth/data/budget_repository.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/budget_bloc.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +56,6 @@ void main() async {
       final sanctumToken = await storage.read(key: 'token');
 
       if (sanctumToken != null) {
-        // User login ဝင်နေချိန်မှ update လုပ်မယ်
         final dio = DioClient.getInstance();
         try {
           await dio.post(
@@ -108,7 +106,9 @@ class MyApp extends StatelessWidget {
 RepositoryProvider<GroupRepository>(
   create: (context) => GroupRepository(),
 ),
-
+RepositoryProvider<ExpenseSplitRepository>(
+  create: (context) => ExpenseSplitRepository(),
+),
       
       ],
       

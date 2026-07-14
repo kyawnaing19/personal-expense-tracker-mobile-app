@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
@@ -16,11 +15,18 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    // Signing Config ကို ဤနေရာတွင် ထည့်ပါ
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\keystores\\upload-keystore.jks")
+            storePassword = "283933"
+            keyAlias = "upload"
+            keyPassword = "283933"
+        }
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.expense_tracker"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -29,9 +35,10 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // ခုနကဆောက်ထားတဲ့ release signingConfig ကို ဒီမှာ သုံးပါ
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
