@@ -28,7 +28,6 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
   CategoryItem? _selectedCategory;
   String? _selectedFrequency; 
-  //DateTime _startDate = DateTime.now();
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
 
   bool get _isEditing => widget.existing != null;
@@ -140,10 +139,9 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
   }
 
   Future<void> _pickStartDate() async {
-    final today = DateTime.now();
-   // final firstSelectable = DateTime(today.year, today.month, today.day);
-   final firstSelectable = DateTime(today.year, today.month, today.day).add(const Duration(days: 1));
-    final picked = await showDatePicker(
+  final today = DateTime.now();
+  final firstSelectable = DateTime(today.year, today.month, today.day).add(const Duration(days: 1));
+  final picked = await showDatePicker(
       context: context,
       initialDate: _startDate.isBefore(firstSelectable) ? firstSelectable : _startDate,
       firstDate: firstSelectable,
@@ -255,6 +253,9 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 340 ? 12.0 : (screenWidth >= 600 ? 32.0 : 16.0);
+
     return Scaffold(
       backgroundColor: const Color(0xFFEDE7F6),
       resizeToAvoidBottomInset: false,
@@ -267,19 +268,31 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, MediaQuery.of(context).viewInsets.bottom + 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      _buildTopHeader(),
-                      const SizedBox(height: 20),
-                      _buildLabel('Transaction Name'),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(horizontalPadding, 16.0, horizontalPadding, 0),
+                    child: _buildTopHeader(),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, MediaQuery.of(context).viewInsets.bottom + 16.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                          _buildLabel('Transaction Name'),
                       _buildTextField(controller: _nameController, hint: 'Please enter the transaction name'),
                       const SizedBox(height: 14),
 
@@ -300,9 +313,9 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
                         child: Text(
-                          _selectedCategory == null ? '-' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
+                          _selectedCategory == null ? ' ' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
                           style: const TextStyle(color: Colors.black54),
                         ),
                       ),
@@ -335,47 +348,52 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
                       _buildLabel('Note'),
                       _buildTextField(controller: _noteController, hint: 'Optional note'),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                          child: const Text('Cancel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 24),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(color: primaryPurple, width: 1.5),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: Text('Cancel', style: TextStyle(color: primaryPurple, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: BlocBuilder<RecurringTransactionBloc, RecurringTransactionStateBase>(
+                              builder: (context, state) {
+                                final loading = state is RecurringTransactionLoading;
+                                return SizedBox(
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: loading ? null : _submit,
+                                    style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                                    child: loading
+                                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                        : const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: BlocBuilder<RecurringTransactionBloc, RecurringTransactionStateBase>(
-                        builder: (context, state) {
-                          final loading = state is RecurringTransactionLoading;
-                          return SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: loading ? null : _submit,
-                              style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                              child: loading
-                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                  : const Text('Ok', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -387,10 +405,10 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black)),
+          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle,), child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black)),
         ),
-        const SizedBox(width: 16),
-        Text(_isEditing ? 'Edit Transaction' : 'Add Transactions', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+        const SizedBox(width: 45),
+        Text(_isEditing ? 'Edit Recurring Transaction' : 'Add Recurring Transactions', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
       ],
     );
   }
@@ -402,7 +420,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
   Widget _buildTextField({required TextEditingController controller, required String hint, TextInputType? keyboardType}) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
@@ -418,7 +436,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [Expanded(child: child), const Icon(Icons.keyboard_arrow_down, color: Colors.black38)],

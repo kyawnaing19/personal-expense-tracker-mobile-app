@@ -228,9 +228,9 @@ class _BudgetFormState extends State<BudgetForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _actionButton("Cancel", const Color(0xFF9E65FF), widget.onCancel),
+                  _cancelButton("Cancel", widget.onCancel),
                   const SizedBox(width: 15),
-                  _actionButton(widget.submitLabel, const Color(0xFF8A4BEB), _submit),
+                  _submitButton(widget.submitLabel, _submit),
                 ],
               ),
             ],
@@ -295,18 +295,34 @@ class _BudgetFormState extends State<BudgetForm> {
     );
   }
 
-  Widget _actionButton(String label, Color color, VoidCallback onTap) {
+  Widget _cancelButton(String label, VoidCallback onTap) {
+    return SizedBox(
+      width: 90,
+      height: 40,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFF8A4BEB)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          padding: EdgeInsets.zero,
+        ),
+        child: Text(label, style: const TextStyle(color: Color(0xFF8A4BEB), fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
+  Widget _submitButton(String label, VoidCallback onTap) {
     return SizedBox(
       width: 90,
       height: 40,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
+          backgroundColor: const Color(0xFF8A4BEB),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           padding: EdgeInsets.zero,
         ),
-        child: Text(label, style: const TextStyle(color: Colors.white)),
+        child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
     );
   }

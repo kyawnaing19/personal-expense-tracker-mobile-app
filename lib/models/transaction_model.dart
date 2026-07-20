@@ -8,7 +8,7 @@ class TransactionItem {
   Color categoryColor;
   double amount;
   String note;
-  String type; // 'expense' သို့မဟုတ် 'income'
+  String type; 
   DateTime createdAt;
 
   TransactionItem({

@@ -16,7 +16,6 @@ class SettleDebtBloc extends Bloc<SettleDebtEvent, SettleDebtStateBase> {
     emit(SettleDebtLoading());
     try {
       final splits = await _repository.getMySplits();
-      // ကျန်နေသေးတဲ့ (မပြေရသေးတဲ့) debt တွေချည်းသာ Settle Debt list မှာပြမယ်
       final unsettled = splits
           .where((s) => !s.isSettled && s.remainingAmount > 0)
           .toList();
@@ -35,16 +34,11 @@ Future<void> _onClaimPaymentRequested(ClaimPaymentRequested event,
   emit(current.copyWith(pendingClaimSplitIds: pending));
 
   try {
-    // claim တင်တာ အောင်မြင်ကြောင်းပဲ confirm လိုက်တာ (response ကို split
-    // model အနေနဲ့ ပြန် parse မလုပ်တော့ဘူး)
     await _repository.claimPayment(
       splitId: event.splitId,
       amount: event.amount,
     );
 
-    // split ရဲ့ amount/owed/remaining တွေ မပြောင်းသေးဘူး (payer confirm
-    // မှသာ ပြောင်းမှာ) - hasPendingClaim ကိုပဲ true mark လိုက်တာ, split
-    // ကို list ထဲကနေ လုံးဝ မဖယ်တော့ဘူး
     final newSplits = current.splits.map((s) {
       if (s.id != event.splitId) return s;
       return s.copyWith(hasPendingClaim: true);

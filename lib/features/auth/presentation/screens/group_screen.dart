@@ -42,6 +42,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
       builder: (_) => const _CreateGroupDialog(),
     );
     if (created != null && mounted) {
+      context.read<GroupBloc>().add(LoadGroups()); 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('"${created.name}" group created')),
       );
@@ -74,8 +75,17 @@ class _GroupsScreenState extends State<GroupsScreen> {
               child: Row(
                 children: [
                   _RoundIconButton(
-                    icon: Icons.arrow_back,
+                    icon: Icons.arrow_back_ios_outlined,
                     onTap: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 100),
+                  const Text(
+                    'Groups',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ],
               ),
@@ -94,72 +104,69 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   final groups = _groups;
                   bool isLoading = state is GroupLoading && groups.isEmpty;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 180,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Image.asset(
-                            'assets/images/group_illustration.jpg',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        Row(
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _CreateNewCard(onTap: _openCreateForm),
+                            Container(
+                              height: 180,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Image.asset(
+                                'assets/images/group_illustration.jpg',
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _JoinGroupCard(onTap: _openJoinGroupForm),
+                            const SizedBox(height: 20),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _CreateNewCard(onTap: _openCreateForm),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _JoinGroupCard(onTap: _openJoinGroupForm),
+                                ),
+                              ],
                             ),
+                            const SizedBox(height: 20),
+
+                            const Text(
+                              'My Groups',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 12),
+                            if (isLoading && groups.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Center(child: CircularProgressIndicator()),
+                              )
+                            else if (groups.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Text(
+                                  'No groups yet',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              )
+                            else
+                              _ResponsiveGroupGrid(
+                                groups: groups,
+                                maxWidth: constraints.maxWidth,
+                                onOpen: _openGroup,
+                              ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        const Text(
-                          'My Groups',
-                          style:
-                              TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        if (isLoading && groups.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 24),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (groups.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(
-                              'No groups yet',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: groups
-                                .map(
-                                  (g) => _GroupCard(
-                                    group: g,
-                                    onTap: () => _openGroup(g),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
@@ -167,6 +174,49 @@ class _GroupsScreenState extends State<GroupsScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ResponsiveGroupGrid extends StatelessWidget {
+  final List<GroupModel> groups;
+  final double maxWidth;
+  final ValueChanged<GroupModel> onOpen;
+
+  const _ResponsiveGroupGrid({
+    required this.groups,
+    required this.maxWidth,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const double spacing = 12;
+    const double minCardWidth = 140;
+    int crossAxisCount = (maxWidth / (minCardWidth + spacing)).floor();
+    if (crossAxisCount < 2) crossAxisCount = 2;
+    if (crossAxisCount > 4) crossAxisCount = 4;
+
+    final double cardWidth =
+        (maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: groups.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: cardWidth / kGroupCardHeight,
+      ),
+      itemBuilder: (context, index) {
+        final g = groups[index];
+        return _GroupCard(
+          group: g,
+          onTap: () => onOpen(g),
+        );
+      },
     );
   }
 }
@@ -180,24 +230,20 @@ class _RoundIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: const CircleBorder(),
       child: InkWell(
-        customBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        customBorder: const CircleBorder(),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, size: 20, color: Colors.black87),
+        child: const Padding(
+          padding: EdgeInsets.all(10),
+          child: Icon(Icons.arrow_back_ios_outlined,
+              size: 20, color: Colors.black87),
         ),
       ),
     );
   }
 }
 
-const double kGroupCardWidth = 150;
 const double kGroupCardHeight = 150;
 
 class _GroupCard extends StatelessWidget {
@@ -211,8 +257,6 @@ class _GroupCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Container(
-        width: kGroupCardWidth,
-        height: kGroupCardHeight,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -286,6 +330,7 @@ class _CreateNewCard extends StatelessWidget {
     );
   }
 }
+
 class _JoinGroupCard extends StatelessWidget {
   final VoidCallback onTap;
   const _JoinGroupCard({required this.onTap});
@@ -649,18 +694,17 @@ class _CreateGroupForm extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  onPressed: isSubmitting ? null : onCancel,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kGroupPurple,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: Colors.white)),
-                ),
-              ),
+               child: OutlinedButton(
+                        onPressed: isSubmitting ? null : onCancel,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey[300]!),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: Colors.black87)),
+                      ),),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(

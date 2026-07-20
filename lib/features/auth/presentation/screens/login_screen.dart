@@ -1,4 +1,3 @@
-import 'package:expense_tracker/features/auth/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
@@ -14,13 +13,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
-  static const Color _accent = Color(0xFF8B5CF6); // purple accent used throughout
+  static const Color _accent = Color(0xFF8B5CF6); 
 
   late AnimationController _rotationController;
   late Animation<double> _rotationAnimation;
   late PageController _onboardPageController;
 
-  // 1 = rotating logo intro, 2 = onboarding carousel (last page has the Google button)
   int _currentStage = 1;
   int _onboardIndex = 0;
 
@@ -80,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen>
     await Future.delayed(const Duration(milliseconds: 700));
     if (mounted) {
       setState(() {
-        _currentStage = 2; // move into the onboarding carousel
+        _currentStage = 2;
       });
     }
   }
@@ -120,14 +118,7 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: Colors.white,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          }
-
-          if (state is AuthError) {
+  if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
@@ -145,7 +136,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // Stage 1: rotating logo intro (matches the video)
   Widget _buildSplashIntroStage() {
     final screenWidth = MediaQuery.of(context).size.width;
     double logoSize = screenWidth * 0.28;
@@ -165,13 +155,11 @@ class _LoginScreenState extends State<LoginScreen>
           width: logoSize,
           height: logoSize,
           decoration: BoxDecoration(
-            color: const Color(0xFF38BDF8),
+            color: const Color.fromRGBO(139, 92, 246, 1),
             borderRadius: BorderRadius.circular(logoSize * 0.22),
           ),
-         // child: Padding(
-            //padding: const EdgeInsets.all(12.0),
             child: Image.asset(
-              'assets/images/logo.jpg',
+              'assets/images/logo.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Icon(Icons.savings_outlined,
@@ -184,8 +172,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // Stage 2: 5-page onboarding carousel. The last page carries the
-  // "Sign in with Google" button, wired to the same AuthBloc as before.
   Widget _buildOnboardingStage(BuildContext context, AuthState state) {
     return SafeArea(
       key: const ValueKey('OnboardingStage'),
@@ -224,111 +210,131 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _onboardPageController,
               itemCount: _onboardPages.length,
               onPageChanged: (index) => setState(() => _onboardIndex = index),
-              itemBuilder: (context, index) {
-                final page = _onboardPages[index];
-                final isLastPage = index == _onboardPages.length - 1;
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      Image.asset(
-                        page.image,
-                        height: 220,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const SizedBox(
-                          height: 220,
-                          child: Icon(Icons.image_outlined,
-                              size: 100, color: Colors.black26),
-                        ),
+          itemBuilder: (context, index) {
+  final page = _onboardPages[index];
+  final isLastPage = index == _onboardPages.length - 1;
+
+  final screenWidth = MediaQuery.of(context).size.width;
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      double imageHeight = constraints.maxHeight * 0.32;
+      if (imageHeight > 260) imageHeight = 260;
+      if (imageHeight < 150) imageHeight = 150;
+      final imageWidth = screenWidth * 0.72;
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: imageWidth,
+                    height: imageHeight,
+                    child: Image.asset(
+                      page.image,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.image_outlined,
+                        size: imageHeight * 0.45,
+                        color: Colors.black26,
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _onboardPages.length,
-                          (dotIndex) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: _onboardIndex == dotIndex ? 22 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _onboardIndex == dotIndex
-                                  ? _accent
-                                  : Colors.black12,
-                              borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _onboardPages.length,
+                    (dotIndex) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: _onboardIndex == dotIndex ? 22 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _onboardIndex == dotIndex
+                            ? _accent
+                            : Colors.black12,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  page.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  page.description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.45),
+                    height: 1.5,
+                  ),
+                ),
+                if (isLastPage) ...[
+                  const SizedBox(height: 28),
+                  state is AuthLoading
+                      ? const CircularProgressIndicator(color: _accent)
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(GoogleLoginRequested());
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.black12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.network(
+                                  'https://www.google.com/favicon.ico',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Sign in with Google',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      Text(
-                        page.title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        page.description,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black.withOpacity(0.45),
-                          height: 1.5,
-                        ),
-                      ),
-                      if (isLastPage) ...[
-                        const SizedBox(height: 28),
-                        state is AuthLoading
-                            ? const CircularProgressIndicator(color: _accent)
-                            : SizedBox(
-                                width: double.infinity,
-                                height: 52,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    context
-                                        .read<AuthBloc>()
-                                        .add(GoogleLoginRequested());
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                        color: Colors.black12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                    children: [
-                                      Image.network(
-                                        'https://www.google.com/favicon.ico',
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'Sign in with Google',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                      ],
-                    ],
-                  ),
-                );
-              },
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+},
             ),
           ),
           Padding(

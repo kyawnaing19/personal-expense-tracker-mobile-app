@@ -1,11 +1,9 @@
-// GET /groups/{groupId}/balance ရဲ့ list item တစ်ခုစီအတွက် model
-// (Member List ↔ Members' Balance Screen)
 class MemberBalanceModel {
   final String userId;
   final String name;
   final String? avatar;
-  final int totalReceivable; // သူများဆီက ရရမဲ့ amount
-  final int totalPayable; // သူများကို ပေးရမဲ့ amount
+  final int totalReceivable; 
+  final int totalPayable; 
 
   MemberBalanceModel({
     required this.userId,
@@ -34,12 +32,10 @@ class MemberBalanceModel {
   }
 }
 
-// GET /groups/{groupId}/balance/{userId}/details ရဲ့ list item တစ်ခုစီ
-// (owed_to_others / owed_by_others array ထဲက split card တစ်ခုစီ)
 class BalanceSplitItem {
   final String splitId;
-  final String expense; // Description (e.g. "Buying Cosmetics")
-  final String personName; // owed_by_others -> "owed_by", owed_to_others -> "owed_to"
+  final String expense; 
+  final String personName; 
   final int amountOwed;
   final int amountPaid;
   final int remaining;
@@ -62,9 +58,6 @@ class BalanceSplitItem {
     return BalanceSplitItem(
       splitId: json['split_id']?.toString() ?? '',
       expense: json['expense']?.toString() ?? '',
-      // owed_by_others array ရဲ့ item တစ်ခုစီမှာ "owed_by" (To Receive),
-      // owed_to_others array ရဲ့ item တစ်ခုစီမှာ "paid_to" (To Pay) ဆိုပြီး
-      // backend က field name ခွဲပေးထားတယ် (owed_to မဟုတ်ဘူး)
       personName:
           (json['owed_by'] ?? json['paid_to'] ?? json['owed_to'] ?? '')
               .toString(),
@@ -81,10 +74,10 @@ class BalanceSplitItem {
   }
 }
 
-// GET /groups/{groupId}/balance/{userId}/details ရဲ့ "data" object တစ်ခုလုံး
+
 class MemberBalanceDetailModel {
-  final List<BalanceSplitItem> owedToOthers; // ကိုယ်ပေးရမဲ့ list (To Pay)
-  final List<BalanceSplitItem> owedByOthers; // ကိုယ်ရရမဲ့ list (To Receive)
+  final List<BalanceSplitItem> owedToOthers; 
+  final List<BalanceSplitItem> owedByOthers; 
 
   MemberBalanceDetailModel({
     required this.owedToOthers,
@@ -112,10 +105,9 @@ class MemberBalanceDetailModel {
   }
 }
 
-// GET /groups/{groupId}/balance/{userId}/history ရဲ့ item တစ်ခုစီ
 class SettlementHistoryItem {
   final String expense;
-  final String otherPartyName; // "paid_to" (Paid tab) / "received_from" (Received tab)
+  final String otherPartyName; 
   final int amount;
   final DateTime? confirmedAt;
 
@@ -145,7 +137,6 @@ class SettlementHistoryItem {
   }
 }
 
-// GET /groups/{groupId}/balance/{userId}/history ရဲ့ "data" object တစ်ခုလုံး
 class SettlementHistoryModel {
   final List<SettlementHistoryItem> paidToOthers;
   final List<SettlementHistoryItem> receivedByOthers;

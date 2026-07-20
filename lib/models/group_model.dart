@@ -3,7 +3,7 @@ class GroupMember {
   final String name;
   final String email;
   final String? avatar;
-  final String role; // "admin" | "member"
+  final String role; 
   final DateTime? joinedAt;
 
   GroupMember({
@@ -54,9 +54,6 @@ class GroupModel {
     this.members = const [],
   });
 
-  // "Created by" ဆိုတဲ့နေရာမှာ user id အစား အမည်ပြချင်လို့
-  // members list ထဲက id တူတဲ့သူကို ရှာပြီး name ကို ပြန်ပေးမယ်
-  // (backend က created_by field ကို user id အနေနဲ့ ပြန်ပေးထားလို့)
   String get creatorName {
     final creator = members.where((m) => m.id == createdBy);
     if (creator.isNotEmpty) return creator.first.name;
@@ -75,25 +72,9 @@ class GroupModel {
 
     int memberCount;
     if (membersJson != null) {
-      // members array ကို backend က ပေးထားရင် (group detail / add member /
-      // generate invite code စတဲ့ response တွေမှာ) - group_settings_screen
-      // ကလိုပဲ members.length ကို တိုက်ရိုက်ယူမယ်၊ ဒါက အမှန်ကန်ဆုံးပါ။
-      // (member_count field ကို မယုံပါဘူး - member အသစ်ထည့်ပြီးနောက်ပိုင်း
-      // ဒီ field က မ update ဖြစ်ဘဲ stale ဖြစ်နေတတ်လို့ count မတိုးတဲ့ bug
-      // ဖြစ်စေနိုင်တယ်)
-      //
-      // backend ရဲ့ members list ထဲမှာ group ဖန်တီးသူ (creator) ကိုယ်တိုင်
-      // မပါဝင်ရင် (invited/added member တွေချည်းပဲ ပါလာရင်), creator ကိုပါ
-      // +1 ထည့်ရေတွက်ပေးမယ် (group တိုင်းမှာ creator က member တစ်ယောက်
-      // အနေနဲ့ အမြဲရှိနေရမှာမို့)
       final creatorAlreadyCounted = members.any((m) => m.id == createdBy);
       memberCount = creatorAlreadyCounted ? members.length : members.length + 1;
     } else {
-      // members array မပါလာတဲ့ list-summary response (GET /groups) အတွက်
-      // backend က field နာမည် "group_users_count" လို့ ပေးထားတယ် ("member_count"
-      // မဟုတ်ဘူး) - နာမည်မကိုက်လို့ အရင်က အမြဲ 0 ဖြစ်နေခဲ့တာ။ ဒီ count ထဲမှာ
-      // creator ကိုပါ ရေတွက်ပြီးသားမို့ (settings screen ရဲ့ members.length
-      // နဲ့ ကိုက်ညီတယ်) +1 ထပ်ပေါင်းစရာ မလိုတော့ပါဘူး
       final rawCount = json['group_users_count'] is int
           ? json['group_users_count'] as int
           : int.tryParse(json['group_users_count']?.toString() ?? '') ?? 0;

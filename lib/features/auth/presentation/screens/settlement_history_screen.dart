@@ -23,7 +23,6 @@ class SettlementHistoryScreen extends StatefulWidget {
 }
 
 class _SettlementHistoryScreenState extends State<SettlementHistoryScreen> {
-  // true => "Received by others" tab, false => "Paid to others" tab
   bool _showReceived = true;
 
   @override
@@ -48,7 +47,7 @@ class _SettlementHistoryScreenState extends State<SettlementHistoryScreen> {
               Row(
                 children: [
                   _RoundIconButton(
-                    icon: Icons.arrow_back,
+                    icon: Icons.arrow_back_ios_outlined,
                     onTap: () => Navigator.pop(context),
                   ),
                   const Expanded(
@@ -139,7 +138,7 @@ class _TabToggle extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? kSettlePurple : Colors.transparent,
+          color: selected ? kSettlePurple : Colors.white,
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,

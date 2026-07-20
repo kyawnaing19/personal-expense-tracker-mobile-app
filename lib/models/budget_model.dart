@@ -1,3 +1,5 @@
+
+import 'package:expense_tracker/features/auth/presentation/screens/category_icons.dart';
 import 'package:flutter/material.dart';
 
 class BudgetItem {
@@ -9,7 +11,7 @@ class BudgetItem {
   final double budget;
   final double spent;
   final double remaining;
-  final double percentage; // expense percentage, can exceed 100 (e.g. 101.6)
+  final double percentage;
   final int alertPercentage;
   final int month; // 1-12
   final int year;
@@ -52,14 +54,12 @@ class BudgetItem {
     );
   }
 
-  /// Parses the "57815" style codepoint string returned by the API into an IconData.
+  // ← non-constant IconData ဖန်တီးနေတဲ့ old _parseIcon ကို ဖယ်ပြီး
+  // shared resolveIcon() ကို အသုံးပြုမယ် (category_icons.dart ထဲက)
   static IconData _parseIcon(dynamic raw) {
-    final code = int.tryParse(raw?.toString() ?? '');
-    if (code == null) return Icons.category;
-    return IconData(code, fontFamily: 'MaterialIcons');
+    return resolveIcon(raw?.toString());
   }
 
-  /// Parses a "#f59e0b" style hex string returned by the API into a Color.
   static Color _parseColor(dynamic raw) {
     String hex = (raw ?? '').toString().replaceAll('#', '');
     if (hex.length == 6) hex = 'FF$hex';

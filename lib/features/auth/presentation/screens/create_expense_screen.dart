@@ -23,8 +23,8 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
   final _amountController = TextEditingController();
   final Map<String, TextEditingController> _splitControllers = {};
 
-  String? _splitType; // null | 'equally' | 'custom'
-  bool _includePayer = true; // Include Me (default) / Exclude Me
+  String? _splitType;
+  bool _includePayer = true;
   DateTime? _selectedDate;
   String? _currentUserId;
 
@@ -65,10 +65,6 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
     return sum;
   }
 
-  // Equal split preview - Include Me ရွေးထားရင် member အားလုံး (ကိုယ်တိုင်
-  // အပါအဝင်) ရဲ့ ရေအတွက်နဲ့ ခွဲတွက်ပြီး, Exclude Me ရွေးထားရင် ကိုယ်တိုင်
-  // ကိုထုတ်ပြီး ကျန်တဲ့ member အရေအတွက်နဲ့ပဲ ခွဲတွက်ပေးတယ် (backend ဘက်ကလည်း
-  // include_payer flag ကို ဒီအတိုင်းပဲ သုံးပြီး တွက်ပေးတယ်)
   List<dynamic> get _equalSplitMembers {
     final members = widget.group.members;
     return _includePayer
@@ -92,22 +88,22 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    // past, current, future date အားလုံး ရွေးလို့ရအောင် wide range ပေးထားတယ်
+    final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? now,
+      initialDate: _selectedDate != null && _selectedDate!.isAfter(today)
+          ? today
+          : (_selectedDate ?? today),
       firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 5),
-      // card ကို အဖြူရောင်၊ header/selected-date/OK ခလုတ်တွေကို
-      // app ရဲ့ ခရမ်းရောင် (kExpensePurple) အတိုင်း theme ပြင်တာ
+      lastDate: today,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: kExpensePurple, // header bg + selected day
-              onPrimary: Colors.white, // header text + selected day text
-              onSurface: Colors.black87, // calendar body text
-              surface: Colors.white, // dialog background
+              primary: kExpensePurple,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+              surface: Colors.white,
             ),
             dialogBackgroundColor: Colors.white,
             textButtonTheme: TextButtonThemeData(
@@ -127,22 +123,22 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
 
   void _submit() {
     if (_amount <= 0) {
-      _showError('Amount ထည့်ပေးပါ');
+      _showError('Add Amount');
       return;
     }
     if (_splitType == null) {
-      _showError('Split Type ရွေးပေးပါ');
+      _showError('Choose Split Type');
       return;
     }
     if (_selectedDate == null) {
-      _showError('Date ရွေးပေးပါ');
+      _showError('Choose Date');
       return;
     }
 
     List<ExpenseSplitInput>? splits;
     if (_splitType == 'custom') {
       if (_customSplitSum != _amount) {
-        _showError('Total Split ကို Amount အတိုင်း အပြည့်ခွဲပေးပါ');
+        _showError('Please split the total amount exactly.');
         return;
       }
       splits = widget.group.members
@@ -155,7 +151,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
           .where((s) => s.amountOwed > 0)
           .toList();
       if (splits.isEmpty) {
-        _showError('Member တစ်ယောက်ချင်းစီအတွက် amount ခွဲပေးပါ');
+        _showError('Split the amount for each member.');
         return;
       }
     }
@@ -194,7 +190,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                 Row(
                   children: [
                     _RoundIconButton(
-                      icon: Icons.arrow_back,
+                      icon: Icons.arrow_back_ios_outlined,
                       onTap: () => Navigator.pop(context),
                     ),
                     const Expanded(
@@ -218,9 +214,6 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    // Cancel/Done ကို scroll area အပြင်ဘက် static footer
-                    // အနေနဲ့ ခွဲထားလိုက်တယ် - fields တွေများပြီး scroll
-                    // ဖြစ်လာရင်တောင် ဒီ button ၂ခုက အမြဲမြင်ရအောင်
                     child: Column(
                       children: [
                         Expanded(
@@ -228,122 +221,122 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                          _label('Description'),
-                          TextField(
-                            controller: _descriptionController,
-                            decoration: _inputDecoration(
-                                hint: 'e.g Eating Pizza, Buying Cosmetics'),
-                          ),
-                          const SizedBox(height: 18),
-                          _label('Amount'),
-                          TextField(
-                            controller: _amountController,
-                            keyboardType: TextInputType.number,
-                            decoration: _inputDecoration(),
-                          ),
-                          const SizedBox(height: 18),
-                          _label('Group'),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 14),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: kExpensePurple.withOpacity(0.4)),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(widget.group.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
-                                const SizedBox(width: 8),
-                                Text('${widget.group.memberCount} members',
-                                    style: TextStyle(
-                                        color: Colors.grey[400],
-                                        fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _label('Split Type'),
-                          Row(
-                            children: [
-                              Expanded(
-                                  child: _splitTypeButton('Equal', 'equally')),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: _splitTypeButton('Custom', 'custom')),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (_splitType == 'equally') _buildEqualSection(),
-                          if (_splitType == 'custom') _buildCustomSection(),
-                          const SizedBox(height: 18),
-                          _label('Date'),
-                          InkWell(
-                            onTap: _pickDate,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 14),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: kExpensePurple.withOpacity(0.4)),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(_selectedDate != null
-                                      ? _formatDate(_selectedDate!)
-                                      : 'Select date'),
-                                  const Icon(Icons.calendar_today_outlined,
-                                      size: 18, color: kExpensePurple),
-                                ],
-                              ),
-                            ),
-                          ),
+                                _label('Description'),
+                                TextField(
+                                  controller: _descriptionController,
+                                  decoration: _inputDecoration(
+                                      hint: 'e.g Eating Pizza, Buying Cosmetics'),
+                                ),
+                                const SizedBox(height: 18),
+                                _label('Amount'),
+                                TextField(
+                                  controller: _amountController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: _inputDecoration(),
+                                ),
+                                const SizedBox(height: 18),
+                                _label('Group'),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: kExpensePurple.withOpacity(0.4)),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(widget.group.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      const SizedBox(width: 8),
+                                      Text('${widget.group.memberCount} members',
+                                          style: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                _label('Split Type'),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: _splitTypeButton('Equal', 'equally')),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                        child: _splitTypeButton('Custom', 'custom')),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                if (_splitType == 'equally') _buildEqualSection(),
+                                if (_splitType == 'custom') _buildCustomSection(),
+                                const SizedBox(height: 18),
+                                _label('Date'),
+                                InkWell(
+                                  onTap: _pickDate,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: kExpensePurple.withOpacity(0.4)),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(_selectedDate != null
+                                            ? _formatDate(_selectedDate!)
+                                            : 'Select date'),
+                                        const Icon(Icons.calendar_today_outlined,
+                                            size: 18, color: kExpensePurple),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Cancel/Done - scroll area ရဲ့ အပြင်ဘက်မှာ static
-                        // footer အနေနဲ့ထားလို့ ဘယ်လောက်ပဲ scroll လုပ်လုပ်
-                        // အမြဲမြင်ရမယ်
                         BlocBuilder<ExpenseBloc, ExpenseStateBase>(
                           builder: (context, state) {
                             final isSubmitting = state is ExpenseCreating;
-                            return Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
+                            return Align(
+                              alignment: Alignment.centerRight,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextButton(
                                     onPressed: isSubmitting
                                         ? null
                                         : () => Navigator.pop(context),
-                                    style: OutlinedButton.styleFrom(
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: const Color(0xFFEDE7F6),
+                                      foregroundColor: const Color(0xFF4A4A4A),
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
+                                          horizontal: 22, vertical: 12),
+                                      shape: const StadiumBorder(),
+                                      elevation: 0,
                                     ),
-                                    child: const Text('Cancel'),
+                                    child: const Text('Cancel',
+                                        style:
+                                            TextStyle(fontWeight: FontWeight.w600)),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton(
+                                  const SizedBox(width: 10),
+                                  ElevatedButton(
                                     onPressed: isSubmitting ? null : _submit,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: kExpensePurple,
+                                      foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
+                                          horizontal: 26, vertical: 12),
+                                      shape: const StadiumBorder(),
+                                      elevation: 0,
                                     ),
                                     child: isSubmitting
                                         ? const SizedBox(
@@ -355,10 +348,11 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                                           )
                                         : const Text('Done',
                                             style: TextStyle(
-                                                color: Colors.white)),
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600)),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -401,7 +395,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
     return OutlinedButton(
       onPressed: () => setState(() => _splitType = value),
       style: OutlinedButton.styleFrom(
-        backgroundColor: selected ? kExpensePurple : Colors.white,
+        backgroundColor: selected ? const Color.fromARGB(255, 224, 205, 252) : Colors.white,
         side:
             BorderSide(color: kExpensePurple.withOpacity(selected ? 1 : 0.4)),
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -409,7 +403,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
       ),
       child: Text(label,
           style:
-              TextStyle(color: selected ? Colors.white : Colors.black87)),
+              TextStyle(color: selected ? Colors.black87 : Colors.black87)),
     );
   }
 
@@ -467,7 +461,6 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            // ခွဲပြီးရင် အစိမ်း / မခွဲရသေးရင် အဝါ
             color: isComplete
                 ? const Color(0xFFDCF7DC)
                 : const Color(0xFFFBEFD1),

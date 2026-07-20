@@ -78,8 +78,6 @@ class BudgetCard extends StatelessWidget {
                     _dataRow("Budget :", formatAmount(budget.budget)),
                     const SizedBox(height: 6),
                     _dataRow("Expenses :", formatAmount(budget.spent)),
-                    // The divider sits below BOTH Budget and Expenses —
-                    // right above Remaining — not under the header.
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 6),
                       child: Divider(thickness: 1, height: 1, color: Color(0xFFE0E0E0)),

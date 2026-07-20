@@ -3,17 +3,17 @@ import 'package:expense_tracker/features/auth/presentation/bloc/category_event.d
 import 'package:expense_tracker/features/auth/presentation/bloc/category_state.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/transaction_event.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/category_icons.dart';
+import 'package:expense_tracker/features/auth/data/category_repository.dart'; 
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-
 import 'category_states.dart';
 import 'category_calculator_view.dart';
 import 'category_forms_view.dart';
 
 class CategoryScreen extends StatefulWidget {
-  final VoidCallback? onBackToHome; 
+  final VoidCallback? onBackToHome;
   final Function(CategoryState)? onStateChanged;
 
   const CategoryScreen({Key? key, this.onBackToHome, this.onStateChanged}) : super(key: key);
@@ -22,13 +22,22 @@ class CategoryScreen extends StatefulWidget {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProviderStateMixin {
+class _CategoryScreenState extends State<CategoryScreen> {
   CategoryState _currentState = CategoryState.view;
-  late TabController _tabController;
 
-  String _amount = "0";             
-  String _expression = "";          
-  bool _shouldResetDisplay = false; 
+  String _selectedCategoryType = 'expense';
+  final List<Map<String, String>> _categoryTypeOptions = const [
+    {'value': 'expense', 'label': 'Expense'},
+    {'value': 'income', 'label': 'Income'},
+  ];
+  static const Color primaryPurple = Color(0xFF7F3DFF);
+
+  final CategoryRepository _categoryRepository = CategoryRepository();
+  bool _migrationChecked = false; 
+
+  String _amount = "0";
+  String _expression = "";
+  bool _shouldResetDisplay = false;
 
   final List<Color> _availableColors = [
     const Color(0xFF6366F1), const Color(0xFF10B981), const Color(0xFFF59E0B),
@@ -38,52 +47,60 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     const Color(0xFF6B7280), const Color(0xFF9A3412), const Color(0xFFF3ED5A),
   ];
 
-  final List<IconData> _availableIcons = [
-    Icons.restaurant, Icons.shopping_bag, Icons.directions_car, Icons.home,
-    Icons.local_hospital, Icons.school, Icons.flight, Icons.movie,
-    Icons.fitness_center, Icons.dry_cleaning, Icons.pets, Icons.wifi,
-    Icons.build, Icons.card_giftcard, Icons.attach_money, Icons.payments,
-    Icons.trending_up, Icons.storefront, Icons.account_balance, Icons.calendar_month_outlined,    
-    Icons.handshake, Icons.phone, Icons.school_outlined, Icons.music_note_outlined,
-    Icons.headphones, Icons.local_cafe, Icons.health_and_safety, Icons.computer,
-  ];
-
   CategoryItem? _selectedCategory;
   CategoryItem? _itemToModify;
-  
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-  
+
   Color _tempColor = const Color(0xFFF59E0B);
   IconData _tempIcon = Icons.restaurant;
-  String _tempType = "Expense"; 
-  
+  String _tempType = "Expense";
+
   DateTime _currentSelectedCalendarDate = DateTime.now();
+
+  bool _showCalendarPopup = false;
 
   void _updateState(CategoryState newState) {
     setState(() {
       _currentState = newState;
     });
     if (widget.onStateChanged != null) {
-      widget.onStateChanged!(newState); 
+      widget.onStateChanged!(newState);
     }
+  }
+
+  void _applyCategoryTypeFilter(String type) {
+    if (type == _selectedCategoryType) return;
+    setState(() => _selectedCategoryType = type);
   }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
-    });
+
     BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
+
+    _runIconMigration();
+  }
+
+  Future<void> _runIconMigration() async {
+    if (_migrationChecked) return;
+    _migrationChecked = true;
+
+    try {
+      await _categoryRepository.migrateLegacyCategoryIcons();
+      if (!mounted) return;
+      BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
+    } catch (e) {
+      debugPrint('⚠️ Icon migration failed: $e');
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _noteController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -91,8 +108,8 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     if (value == "Today") {
       setState(() {
         _currentSelectedCalendarDate = DateTime.now();
+        _showCalendarPopup = true; 
       });
-      _updateState(CategoryState.calendar);
       return;
     }
 
@@ -115,7 +132,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         } else {
           _expression = _expression.isEmpty ? "${_amount} ${value}" : "${_expression} ${_amount} ${value}";
         }
-        _shouldResetDisplay = true; 
+        _shouldResetDisplay = true;
         return;
       }
 
@@ -135,11 +152,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
           BlocProvider.of<TransactionBloc>(context).add(
             AddTransactionRequested(categoryId: _selectedCategory!.id, amount: parsedAmount, note: userNote),
           );
-          // LoadTransactions() / LoadCategories() ကို ဒီနေရာမှာ ထပ်မခေါ်တော့ပါ --
-          // TransactionBloc က AddTransactionRequested အောင်မြင်ရင် TransactionActionSuccess
-          // ကို emit လုပ်ပြီးသားမို့ RecordHistoryScreen ရဲ့ listener က transaction list ကို
-          // အလိုအလျောက် ပြန် load လုပ်ပေးမှာပါ။ Category data ကတော့ ဒီနေရာမှာ
-          // လုံးဝ မပြောင်းလဲသွားလို့ ပြန် fetch လုပ်စရာ မလိုပါ။
         }
         _amount = "0"; _expression = ""; _shouldResetDisplay = false;
         _noteController.clear(); _selectedCategory = null;
@@ -261,56 +273,29 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8DEF8), 
+      backgroundColor: const Color(0xFFE8DEF8),
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Column(
               children: [
-                _buildAppBar(), // Top Nav Bar ကို အမြဲတမ်း အပေါ်ဆုံးမှာ ထားပါမည် 🎯
+                _buildAppBar(),
                 Expanded(
                   child: Stack(
                     children: [
-                      // 1️⃣ ပုံမှန် View အခြေအနေ (Category List ပြသရန်)
                       Column(
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                            child: Container(
-  height: 45, // သင်လိုချင်တဲ့ အမြင့်အတိုင်း
-  decoration: BoxDecoration(
-    color: Colors.white, // Tab မသွားတဲ့နေရာတွေအတွက် အဖြူရောင် background
-    borderRadius: BorderRadius.circular(12),
-  ),
-  child: TabBar(
-    controller: _tabController,
-    labelColor: Colors.white, // ရွေးထားတဲ့ Tab (ခရမ်းရောင်) ပေါ်က စာအရောင်
-    unselectedLabelColor: const Color(0xFF4B5563), // မရွေးထားတဲ့ Tab စာအရောင်
-    dividerColor: Colors.transparent, // divider ပျောက်စေရန်
-    indicatorSize: TabBarIndicatorSize.tab,
-    indicator: BoxDecoration(
-      borderRadius: BorderRadius.circular(8), // ပိုလှအောင် နည်းနည်းညှိပေးပါ
-      color: const Color(0xFF7F3DFF), // ရွေးထားတဲ့ Tab ရဲ့ ခရမ်းရောင်
-    ),
-    tabs: const [
-      Tab(child: Center(child: Text("Expense", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)))),
-      Tab(child: Center(child: Text("Income", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)))),
-    ],
-  ),
-),
+                            child: _buildFilterRow(),
                           ),
                           Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
-                              physics: const NeverScrollableScrollPhysics(), 
-                              children: [ _buildCategoryListFiltered('expense'), _buildCategoryListFiltered('income') ],
-                            ),
+                            child: _buildCategoryListFiltered(_selectedCategoryType),
                           ),
                         ],
                       ),
 
-                      // 2️⃣ Calculator ပွင့်လာသည့် View
                       if (_currentState == CategoryState.calculator)
                         CategoryCalculatorView(
                           selectedCategory: _selectedCategory,
@@ -320,7 +305,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                           onKeypadPressed: _onKeypadPressed,
                         ),
 
-                      // 3️⃣ Add Category View
                       if (_currentState == CategoryState.add)
                         CategoryFormsView.buildAddCategoryView(
                           constraints: constraints,
@@ -329,10 +313,11 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                           tempIcon: _tempIcon,
                           tempType: _tempType,
                           availableColors: _availableColors,
-                          availableIcons: _availableIcons,
+                          availableIcons: kAvailableIconsList,
                           onColorSelected: (c) => setState(() => _tempColor = c),
                           onIconSelected: (i) => setState(() => _tempIcon = i),
-                          onSave: () {
+                          onCancel: () => _updateState(CategoryState.view),
+                          onDone: () {
                             if (_nameController.text.isNotEmpty) {
                               BlocProvider.of<CategoryBloc>(context).add(AddCategoryRequested(name: _nameController.text.trim(), icon: _tempIcon, color: _tempColor, type: _tempType.toLowerCase()));
                               _updateState(CategoryState.view);
@@ -340,7 +325,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                           },
                         ),
 
-                      // 4️⃣ Edit Category View (Icon မရွေးစေဘဲ ပြင်ဆင်ပြီး 🎯)
                       if (_currentState == CategoryState.edit)
                         CategoryFormsView.buildEditCategoryView(
                           constraints: constraints,
@@ -350,7 +334,7 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                           tempType: _tempType,
                           availableColors: _availableColors,
                           onColorSelected: (c) => setState(() => _tempColor = c),
-                          onCancel: () => _updateState(CategoryState.view),
+                          onDelete: () => _updateState(CategoryState.deleteConfirm),
                           onDone: () {
                             if (_nameController.text.isNotEmpty && _itemToModify != null) {
                               BlocProvider.of<CategoryBloc>(context).add(UpdateCategoryRequested(id: _itemToModify!.id, name: _nameController.text.trim(), icon: _tempIcon, color: _tempColor, type: _tempType.toLowerCase()));
@@ -359,21 +343,25 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
                             }
                           },
                         ),
-
-                      // 5️⃣ Calendar View
-                      if (_currentState == CategoryState.calendar)
-                        CategoryFormsView.buildCalendarView(
+                      if (_showCalendarPopup)
+                        CategoryFormsView.buildCalendarPopup(
                           screenWidth: screenWidth,
                           currentSelectedCalendarDate: _currentSelectedCalendarDate,
                           onDateSelected: (date) {
                             setState(() {
                               _currentSelectedCalendarDate = date;
+                              _showCalendarPopup = false;
                             });
-                            _updateState(CategoryState.calculator);
                           },
+                          onClose: () => setState(() => _showCalendarPopup = false),
+                          onPrevMonth: () => setState(() {
+                            _currentSelectedCalendarDate = DateTime(_currentSelectedCalendarDate.year, _currentSelectedCalendarDate.month - 1, 1);
+                          }),
+                          onNextMonth: () => setState(() {
+                            _currentSelectedCalendarDate = DateTime(_currentSelectedCalendarDate.year, _currentSelectedCalendarDate.month + 1, 1);
+                          }),
                         ),
 
-                      // 6️⃣ Delete Confirmation
                       if (_currentState == CategoryState.deleteConfirm) _buildDeleteAlertBox(screenWidth),
                     ],
                   ),
@@ -386,11 +374,48 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
     );
   }
 
+  Widget _buildFilterRow() {
+    return Container(
+      height: 45,
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: _categoryTypeOptions.map((option) {
+          final String value = option['value']!;
+          final String label = option['label']!;
+          final bool isSelected = _selectedCategoryType == value;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _applyCategoryTypeFilter(value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? primaryPurple : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    color: isSelected ? Colors.white : const Color(0xFF4B5563),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildAppBar() {
     String title = "Categories";
     if (_currentState == CategoryState.add) title = "Add New Category";
     if (_currentState == CategoryState.edit) title = "Edit Category";
-    if (_currentState == CategoryState.calendar) title = "Calendar"; 
 
     double parsedAmount = double.tryParse(_amount) ?? 0.0;
     bool hasValue = parsedAmount > 0 && _amount != "0" && _amount != "Error";
@@ -403,65 +428,38 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         children: [
           GestureDetector(
             onTap: () {
-            //   if (_currentState == CategoryState.view) {
-            //     if (widget.onBackToHome != null) widget.onBackToHome!();
-
-            //   } 
-              
-            //   else if (_currentState == CategoryState.calendar) {
-            //     _updateState(CategoryState.calculator);
-            //   } else {
-            //     _updateState(CategoryState.view);
-            //   }
-            // },
             if (_currentState == CategoryState.view) {
       if (widget.onBackToHome != null) {
-        widget.onBackToHome!(); 
+        widget.onBackToHome!();
       } else {
-        
-        Navigator.pop(context); 
+
+        Navigator.pop(context);
       }
-    } else if (_currentState == CategoryState.calendar) {
-     
-      _updateState(CategoryState.calculator);
     } else {
-    
+
       _updateState(CategoryState.view);
     }
   },
             child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Color(0xFF1F2937)),
-            ),
+    width: 40,
+    height: 40,
+    alignment: Alignment.center,
+    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+  ),
           ),
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-          if (_currentState == CategoryState.calendar)
+          if (_currentState == CategoryState.calculator)
             GestureDetector(
-              onTap: () async {
-                final DateTime? picked = await showDatePicker(
-                  context: context, initialDate: _currentSelectedCalendarDate, firstDate: DateTime(2020), lastDate: DateTime(2030), initialDatePickerMode: DatePickerMode.year, helpText: "SELECT MONTH & YEAR",
-                );
-                if (picked != null) setState(() { _currentSelectedCalendarDate = DateTime(picked.year, picked.month, 1); });
-              },
-              child: Row(
-                children: [
-                  Text(DateFormat('MMM/yyyy').format(_currentSelectedCalendarDate), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black)),
-                  const Icon(Icons.unfold_more, size: 18, color: Colors.black), 
-                ],
-              ),
-            )
-          else if (_currentState == CategoryState.calculator)
-            GestureDetector(
-              onTap: hasValue ? () => _onKeypadPressed("✓") : null, 
+              onTap: hasValue ? () => _onKeypadPressed("✓") : null,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: Icon(Icons.check, size: 18, color: checkMarkColor), 
+                child: Icon(Icons.check, size: 18, color: checkMarkColor),
               ),
             )
           else
-            const SizedBox(width: 36, height: 36), 
+            const SizedBox(width: 36, height: 36),
         ],
       ),
     );
@@ -478,76 +476,12 @@ class _CategoryScreenState extends State<CategoryScreen> with SingleTickerProvid
         if (state is CategoryLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFF7F3DFF)));
         List<CategoryItem> currentCategories = [];
         if (state is CategoryLoaded) currentCategories = state.categories.where((c) => c.type == type).toList();
-
-        // "Add New Category" now lives in a fixed footer below the list
-        // instead of being the last scrollable item, so it's always
-        // reachable without dragging all the way to the bottom.
-        // return Column(
-        //   children: [
-        //     Expanded(
-        //       child: currentCategories.isEmpty
-        //           ? const SizedBox.shrink()
-        //           : ListView.builder(
-        //               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        //               itemCount: currentCategories.length,
-        //               itemBuilder: (context, index) {
-        //                 final item = currentCategories[index];
-        //                 return Container(
-        //                   margin: const EdgeInsets.only(bottom: 12),
-        //                   clipBehavior: Clip.antiAlias,
-        //                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-        //                   child: Material(
-        //                     color: const Color(0xFFF9FAFB),
-        //                     child: ListTile(
-        //                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        //                       onTap: () {
-        //                         setState(() { _selectedCategory = item; _amount = "0"; _expression = ""; _shouldResetDisplay = false; });
-        //                         _updateState(CategoryState.calculator);
-        //                       },
-        //                       leading: Container(
-        //                         padding: const EdgeInsets.all(2), 
-        //                         decoration: BoxDecoration(shape: BoxShape.circle, border: _selectedCategory == item ? Border.all(color: Colors.black, width: 2) : null),
-        //                         child: CircleAvatar(radius: 20, backgroundColor: item.color, child: Icon(item.icon, color: Colors.white, size: 20)),
-        //                       ),
-        //                       title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15)),
-        //                       trailing: IconButton(icon: const Icon(Icons.more_vert, size: 22, color: Color(0xFF9CA3AF)), onPressed: () => _showActionBottomSheet(item)),
-        //                     ),
-        //                   ),
-        //                 );
-        //               },
-        //             ),
-        //     ),
-        //     Padding(
-        //       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        //       child: Container(
-        //         clipBehavior: Clip.antiAlias,
-        //         decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-        //         child: Material(
-        //           color: const Color(0xFFF9FAFB),
-        //           child: ListTile(
-        //             contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        //             leading: const Icon(Icons.add, color: Colors.black, size: 24),
-        //             title: const Text("Add New Category", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 15)),
-        //             onTap: () {
-        //               _nameController.clear();
-        //               _tempColor = const Color(0xFFF59E0B);
-        //               _tempIcon = Icons.restaurant;
-        //               _tempType = type == 'expense' ? "Expense" : "Income"; 
-        //               _updateState(CategoryState.add);
-        //             },
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // );
-
         return Stack(
   children: [
     currentCategories.isEmpty
         ? const SizedBox.shrink()
         : ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90), // FAB အတွက် နေရာချန်
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90), 
             itemCount: currentCategories.length,
             itemBuilder: (context, index) {
               final item = currentCategories[index];

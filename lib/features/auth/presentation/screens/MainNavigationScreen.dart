@@ -38,26 +38,38 @@ void onTabTapped(int index) {
   @override
   void initState() {
     super.initState();
-
     _pages = [
-      const HomeScreen(),
-      AnalyticalRecordPage(key: _analyticsKey), 
-      CategoryScreen(
-        onBackToHome: () { setState(() { _currentTabIndex = 0; }); },
-        onStateChanged: (state) { setState(() { _currentState = state; }); },
-      ),
-      RecordHistoryScreen(
-        onTabChanged: (index) { setState(() { _currentTabIndex = index; }); },
-      ),
-      ProfileScreen(),
-    ];
+  HomeScreen(onNavigateToHistory: () => onTabTapped(3)),
+  AnalyticalRecordPage(
+    key: _analyticsKey,
+    onBackToHome: () => onTabTapped(0),
+  ),
+  CategoryScreen(
+    onBackToHome: () { setState(() { _currentTabIndex = 0; }); },
+    onStateChanged: (state) { setState(() { _currentState = state; }); },
+  ),
+  RecordHistoryScreen(
+    onTabChanged: (index) { setState(() { _currentTabIndex = index; }); },
+  ),
+  ProfileScreen(),
+];
   }
 
-  @override
-  Widget build(BuildContext context) {
-    bool shouldHideNavBar = _currentTabIndex == 2 && (_currentState != CategoryState.view);
 
-    return Scaffold(
+  @override
+Widget build(BuildContext context) {
+  bool shouldHideNavBar = _currentTabIndex == 2 && (_currentState != CategoryState.view);
+
+  return PopScope(
+    canPop: _currentTabIndex == 0,
+    onPopInvokedWithResult: (bool didPop, dynamic result) {
+      if (didPop) return; 
+      setState(() {
+        _currentTabIndex = 0;
+        _currentState = CategoryState.view;
+      });
+    },
+    child: Scaffold(
       backgroundColor: const Color(0xFFE8DEF8),
       body: IndexedStack(
         index: _currentTabIndex,
@@ -66,8 +78,9 @@ void onTabTapped(int index) {
       bottomNavigationBar: shouldHideNavBar
           ? const SizedBox.shrink()
           : _buildBottomNavigationBar(),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBottomNavigationBar() {
     final double screenWidth = MediaQuery.of(context).size.width;

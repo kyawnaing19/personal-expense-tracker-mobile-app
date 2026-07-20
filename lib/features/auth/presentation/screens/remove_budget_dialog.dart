@@ -25,13 +25,17 @@ void showRemoveBudgetConfirmation(BuildContext context, {required VoidCallback o
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
+                    child: OutlinedButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8A4BEB),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF8A4BEB)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text("No", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "No",
+                        style: TextStyle(color: Color(0xFF8A4BEB), fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -44,8 +48,12 @@ void showRemoveBudgetConfirmation(BuildContext context, {required VoidCallback o
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF8A4BEB),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text("Yes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "Yes",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],

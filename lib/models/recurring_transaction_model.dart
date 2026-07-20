@@ -1,12 +1,12 @@
 class RecurringTransactionItem {
   final String id;
   final String categoryId;
-  final String type; // 'expense' or 'income'
+  final String type;
   final double amount;
   final String note;
   final DateTime startDate;
   final DateTime? endDate;
-  final String frequency; // 'daily' | 'weekly' | 'monthly'
+  final String frequency; 
   final DateTime? nextRunDate;
   final bool isActive;
 

@@ -144,42 +144,10 @@ class ExpenseSplitModel {
     groupExpense: groupExpenseJson is Map<String, dynamic>
         ? ExpenseSplitGroupExpense.fromJson(groupExpenseJson)
         : null,
-    // has_pending_claim (ရှိရင်) OR settlement_requests.status == "pending"
-    // ၂ခုထဲက တစ်ခုခု true ဖြစ်ရင် pending သတ်မှတ်မယ်
     hasPendingClaim: json['has_pending_claim'] == true ||
         settlementStatus == 'pending',
   );
 }
-
-  // factory ExpenseSplitModel.fromJson(Map<String, dynamic> json) {
-  //   final userJson = json['user'];
-  //   final groupExpenseJson = json['group_expense'];
-  //   return ExpenseSplitModel(
-  //     id: json['id']?.toString() ?? '',
-  //     groupExpenseId: json['group_expense_id']?.toString() ?? '',
-  //     userId: json['user_id']?.toString() ?? '',
-  //     amountOwed: _toInt(json['amount_owed']),
-  //     amountPaid: _toInt(json['amount_paid']),
-  //     remainingAmount: _toInt(json['remaining_amount']),
-  //     isSettled: json['is_settled'] == true,
-  //     settledAt: json['settled_at'] != null
-  //         ? DateTime.tryParse(json['settled_at'].toString())
-  //         : null,
-  //     createdAt: json['created_at'] != null
-  //         ? DateTime.tryParse(json['created_at'].toString())
-  //         : null,
-  //     updatedAt: json['updated_at'] != null
-  //         ? DateTime.tryParse(json['updated_at'].toString())
-  //         : null,
-  //     user: userJson is Map<String, dynamic>
-  //         ? ExpenseSplitPerson.fromJson(userJson)
-  //         : null,
-  //     groupExpense: groupExpenseJson is Map<String, dynamic>
-  //         ? ExpenseSplitGroupExpense.fromJson(groupExpenseJson)
-  //         : null,
-  //     hasPendingClaim: json['has_pending_claim'] == true,
-  //   );
-  // }
 
   ExpenseSplitModel copyWith({
     int? amountPaid,

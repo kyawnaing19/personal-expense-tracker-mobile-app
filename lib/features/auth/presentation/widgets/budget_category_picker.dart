@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../models/category_model.dart';
 
-/// Category grid shown when the user taps "Choose Category" in the budget
-/// form. Per the design, this renders as its own section *below* the
-/// "Set Budget" / "Edit Budget" white card — not nested inside it — so it
-/// must NOT be wrapped in another white Container by the caller.
 class BudgetCategoryPicker extends StatelessWidget {
   final List<CategoryItem> categories;
   final CategoryItem? selected;
@@ -47,9 +43,6 @@ class BudgetCategoryPicker extends StatelessWidget {
               onTap: () => onSelected(cat),
               behavior: HitTestBehavior.opaque,
               child: SizedBox(
-                // Fixed width so long category names wrap onto a second
-                // line instead of squeezing the avatar / clipping text —
-                // this is what made the picker look "too small" before.
                 width: 64,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

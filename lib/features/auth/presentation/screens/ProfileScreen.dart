@@ -1,7 +1,6 @@
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/auth_state.dart';
-import 'package:expense_tracker/features/auth/presentation/screens/MainNavigationScreen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/budget_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/debt_requests_screen.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/group_screen.dart';
@@ -81,21 +80,12 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         _buildMenuTile(context, Icons.thumb_up_alt_outlined, "Recommend To Friends", onTap: () async {const String message = "This app is really great to use, give it a try!";
                         await Share.share(message);}),
-  //                       _buildMenuTile(context, Icons.grid_view_rounded, "Categories", onTap: () {
-
-  //   final mainNav = context.findAncestorStateOfType<MainNavigationScreenState>();
-  //   if (mainNav != null) {
-  //     mainNav.onTabTapped(2); 
-  //   }
-  // },),
                         _buildMenuTile(context, Icons.account_balance_wallet_outlined, "Budget", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen())); }),
                         _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen()));  }),
                         _buildMenuTile(context, Icons.groups_outlined, "Groups", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => GroupsScreen())); }),
                         _buildMenuTile(context, Icons.handshake_outlined, "Settle Debt", onTap: () {   Navigator.push(context, MaterialPageRoute(builder: (_) => SettleDebtScreen()));  }),
                         _buildMenuTile(context, Icons.attach_money_outlined, "Debt Requests", onTap: () {   Navigator.push(context, MaterialPageRoute(builder: (_) => DebtRequestsScreen()));  }),
-                        _buildMenuTile(context, Icons.logout_outlined, "Logout", isLogout: true, onTap: () {
-                          context.read<AuthBloc>().add(LogoutRequested());
-                        }),
+                        _buildMenuTile(context, Icons.logout_outlined, "Logout", isLogout: true, onTap: () {  context.read<AuthBloc>().add(LogoutRequested()); }),
                       ],
                     ),
                   ),
@@ -109,23 +99,24 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildMenuTile(BuildContext context, IconData icon, String title, {bool isLogout = false, required VoidCallback onTap}) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFFEDE7F6), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: isLogout ? Colors.red : const Color(0xFF6200EE), size: 24),
-          ),
-          title: Text(title, style: TextStyle(color: isLogout ? Colors.red : Colors.black, fontSize: 16, fontWeight: FontWeight.w500)),
-          onTap: onTap,
+  return Column(
+    children: [
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: const Color(0xFFEDE7F6), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: isLogout ? Colors.red : const Color(0xFF6200EE), size: 24),
         ),
+        title: Text(title, style: TextStyle(color: isLogout ? Colors.red : Colors.black, fontSize: 16, fontWeight: FontWeight.w500)),
+        onTap: onTap,
+      ),
+      if (!isLogout)
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0),
           child: Divider(height: 1, thickness: 0.5, color: Colors.grey),
         ),
-      ],
-    );
-  }
+    ],
+  );
+}
 }

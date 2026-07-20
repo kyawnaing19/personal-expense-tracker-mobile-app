@@ -1,6 +1,4 @@
 class ApiConstants {
-  // static const String baseUrl = 'http://192.168.20.161:8000/api/v1';
-  //static const String baseUrl = 'http://118.27.151.110/api/v1';
   static const String baseUrl = 'https://api.shweeshaungexpensetracker.website/api/v1';
   
   // Auth
@@ -58,6 +56,6 @@ class ApiConstants {
   static String confirmSettlementRequest(String id) =>'/settlement-requests/$id/confirm';
   static String rejectSettlementRequest(String id) =>'/settlement-requests/$id/reject';
 
-// ှSettlement History
+//Settlement History
 static String groupMemberBalanceHistory(String groupId, String userId) =>'/groups/$groupId/balance/$userId/history';
 }

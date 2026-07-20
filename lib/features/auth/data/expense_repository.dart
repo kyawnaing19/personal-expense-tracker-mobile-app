@@ -5,7 +5,6 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../models/expense_model.dart';
 
-/// Custom split တစ်ခုချင်းစီအတွက် (member id + သူ ကျခံရမယ့် amount)
 class ExpenseSplitInput {
   final String userId;
   final int amountOwed;
@@ -21,7 +20,6 @@ class ExpenseSplitInput {
 class ExpenseRepository {
   final Dio _dio = DioClient.getInstance();
 
-  // 1. [GET] /groups/{groupId}/expenses - group တစ်ခုရဲ့ expense transaction list
   Future<List<ExpenseModel>> getGroupExpenses(String groupId) async {
     try {
       final response =
@@ -47,7 +45,7 @@ class ExpenseRepository {
     String? description,
     String? categoryId,
     required DateTime expenseDate,
-    required String splitType, // 'equally' | 'custom'
+    required String splitType, 
     bool? includePayer,
     List<ExpenseSplitInput>? splits,
   }) async {
@@ -107,7 +105,7 @@ class ExpenseRepository {
     String? description,
     String? categoryId,
     required DateTime expenseDate,
-    required String splitType, // 'equally' | 'custom'
+    required String splitType, 
     bool? includePayer,
     List<ExpenseSplitInput>? splits,
   }) async {

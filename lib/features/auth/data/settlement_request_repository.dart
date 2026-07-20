@@ -7,9 +7,6 @@ import '../../../models/settlement_request_model.dart';
 class SettlementRequestRepository {
   final Dio _dio = DioClient.getInstance();
 
-  // 1. [GET] /settlement-requests?role=payer|claimant&status=pending|confirmed|rejected
-  // role=payer  -> "Received Requests" (ကိုယ်က ငွေရှင်၊ confirm/reject လုပ်ရမယ့်ဘက်)
-  // role=claimant -> "Sent Requests" (ကိုယ်တိုင် settle request တင်ခဲ့တဲ့ဘက်)
   Future<List<SettlementRequestModel>> getSettlementRequests({
     required SettlementRequestRole role,
     SettlementRequestStatus? status,
@@ -34,10 +31,7 @@ class SettlementRequestRepository {
       throw Exception(_extractError(e) ?? 'Failed to load debt requests');
     }
   }
-
-  // 2. [POST] /settlement-requests/{requestId}/confirm
-  // "Received Requests" card ပေါ်က "Confirm" ခလုတ်
-  Future<void> confirmRequest(String requestId) async {
+    Future<void> confirmRequest(String requestId) async {
     try {
       await _dio.post(ApiConstants.confirmSettlementRequest(requestId));
     } on DioException catch (e) {
@@ -47,8 +41,7 @@ class SettlementRequestRepository {
     }
   }
 
-  // 3. [POST] /settlement-requests/{requestId}/reject
-  // "Received Requests" card ပေါ်က "Reject" ခလုတ်
+
   Future<void> rejectRequest(String requestId) async {
     try {
       await _dio.post(ApiConstants.rejectSettlementRequest(requestId));

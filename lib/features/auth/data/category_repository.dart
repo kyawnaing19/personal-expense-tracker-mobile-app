@@ -1,21 +1,53 @@
+
+
 import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
+import 'package:expense_tracker/features/auth/presentation/screens/category_icons.dart';
 import 'package:expense_tracker/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/constants/api_constants.dart';
 
-
 class CategoryRepository {
   final Dio _dio = DioClient.getInstance();
   final Box _cacheBox = Hive.box('categories_cache');
+
+  static const Map<String, String> _legacyNameToIconKey = {
+    'food': 'restaurant',
+    'car': 'directions_car',
+    'gym': 'fitness_center',
+    'shopping': 'shopping_bag',
+    'cake': 'cake',
+    'pets': 'pets',
+    'hair cut': 'content_cut',
+    'haircut': 'content_cut',
+    'travel': 'flight',
+    'movie': 'movie',
+    'mo': 'movie',
+    'chicken': 'lunch_dining',
+    'stock': 'trending_up',
+    'home': 'home',
+    'hospital': 'local_hospital',
+    'school': 'school',
+    'phone': 'phone',
+    'wifi': 'wifi',
+    'gift': 'card_giftcard',
+    'salary': 'payments',
+    'saving': 'savings',
+    'savings': 'savings',
+    'bank': 'account_balance',
+    'electricity': 'electric_bolt',
+    'water': 'water_drop',
+    'fuel': 'local_gas_station',
+    'gas': 'local_gas_station',
+  };
 
   void _saveToLocalDB(List<CategoryItem> items) {
     final List<Map<String, dynamic>> rawList = items.map((item) => {
       'id': item.id,
       'name': item.name,
-      'icon': item.icon.codePoint.toString(),
+      'icon': iconToKey(item.icon),
       'color': '#${item.color.value.toRadixString(16).substring(2)}',
       'type': item.type,
     }).toList();
@@ -26,15 +58,14 @@ class CategoryRepository {
   List<CategoryItem> _loadFromLocalDB() {
     final List<dynamic>? rawList = _cacheBox.get('cached_list');
     if (rawList == null) return [];
-    
+
     return rawList.map((json) {
       String colorHex = json['color'] ?? '#6366F1';
       colorHex = colorHex.replaceAll('#', '');
       if (colorHex.length == 6) colorHex = "FF$colorHex";
       Color color = Color(int.parse("0x$colorHex"));
 
-      int iconCode = int.tryParse(json['icon'].toString()) ?? Icons.restaurant.codePoint;
-      IconData icon = IconData(iconCode, fontFamily: 'MaterialIcons');
+      IconData icon = resolveIcon(json['icon']?.toString());
 
       return CategoryItem(
         id: json['id'].toString(),
@@ -53,18 +84,17 @@ class CategoryRepository {
     try {
       developer.log('🚀 [API GET] Fetching fresh data from Server...', name: 'CategoryRepository');
       final response = await _dio.get(ApiConstants.categories);
-      
+
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data['data'] ?? [];
-        
+
         final List<CategoryItem> remoteItems = data.map((json) {
           String colorHex = json['color'] ?? '#6366F1';
           colorHex = colorHex.replaceAll('#', '');
           if (colorHex.length == 6) colorHex = "FF$colorHex";
           Color color = Color(int.parse("0x$colorHex"));
 
-          int iconCode = int.tryParse(json['icon'].toString()) ?? Icons.restaurant.codePoint;
-          IconData icon = IconData(iconCode, fontFamily: 'MaterialIcons');
+          IconData icon = resolveIcon(json['icon']?.toString());
 
           return CategoryItem(
             id: json['id'].toString(),
@@ -87,6 +117,8 @@ class CategoryRepository {
     return localData;
   }
 
+  
+
   Future<CategoryItem> createCategory({required String name, required IconData icon, required Color color, required String type}) async {
     final String tempId = DateTime.now().millisecondsSinceEpoch.toString();
     CategoryItem newItem = CategoryItem(id: tempId, name: name, icon: icon, color: color, type: type);
@@ -101,12 +133,12 @@ class CategoryRepository {
         ApiConstants.categories,
         data: {
           'name': name,
-          'icon': icon.codePoint.toString(),
+          'icon': iconToKey(icon),
           'color': hexColor,
           'type': type.toLowerCase(),
         },
       );
-      
+
       final json = response.data['data'];
       String serverId = json['id'].toString();
 
@@ -117,7 +149,7 @@ class CategoryRepository {
         listForUpdate[idx] = newItem;
         _saveToLocalDB(listForUpdate);
       }
-      
+
       developer.log('✅ [SERVER SYNC] Category Created and Synced to Server with ID: $serverId', name: 'CategoryRepository');
     } catch (e) {
       developer.log('⚠️ [LOCAL ONLY SAVED] Internet offline. Saved locally with Temp ID.', name: 'CategoryRepository');
@@ -139,7 +171,7 @@ class CategoryRepository {
         '${ApiConstants.categories}/$id',
         data: {
           'name': name,
-          'icon': icon.codePoint.toString(),
+          'icon': iconToKey(icon),
           'color': hexColor,
           'type': type.toLowerCase(),
         },
@@ -151,25 +183,71 @@ class CategoryRepository {
   }
 
   Future<void> deleteCategory(String id) async {
+    try {
+      await _dio.delete('${ApiConstants.categories}/$id');
 
-  try {
-    await _dio.delete('${ApiConstants.categories}/$id');
-    
-    final currentList = _loadFromLocalDB();
-    currentList.removeWhere((element) => element.id.toString() == id.toString());
-    _saveToLocalDB(currentList);
-    
-    developer.log('✅ [SERVER SYNC] Category ID: $id Deleted.', name: 'CategoryRepository');
-  } on DioException catch (e) {
-    developer.log('⚠️ [SERVER ERROR] Cannot delete category: ${e.response?.statusCode}', name: 'CategoryRepository');
-    
-    if (e.response?.statusCode == 500) {
-      throw Exception("This category contains transactions and cannot be deleted.");
+      final currentList = _loadFromLocalDB();
+      currentList.removeWhere((element) => element.id.toString() == id.toString());
+      _saveToLocalDB(currentList);
+
+      developer.log('✅ [SERVER SYNC] Category ID: $id Deleted.', name: 'CategoryRepository');
+    } on DioException catch (e) {
+      developer.log('⚠️ [SERVER ERROR] Cannot delete category: ${e.response?.statusCode}', name: 'CategoryRepository');
+
+      if (e.response?.statusCode == 500) {
+        throw Exception("This category contains transactions and cannot be deleted.");
+      }
+
+      throw Exception("Failed to delete category. Please try again.");
+    } catch (e) {
+      throw Exception(e.toString());
     }
-    
-    throw Exception("Failed to delete category. Please try again.");
-  } catch (e) {
-    throw Exception(e.toString());
   }
-}
+  Future<void> migrateLegacyCategoryIcons() async {
+    List<CategoryItem> categories;
+    try {
+      categories = await getCategories();
+    } catch (e) {
+      developer.log('⚠️ [MIGRATION] Failed to load categories: $e', name: 'CategoryRepository');
+      return;
+    }
+
+    int fixedCount = 0;
+
+    for (final c in categories) {
+      final bool looksLikeFallback = c.icon == kDefaultIcon &&
+          c.name.trim().toLowerCase() != 'food';
+
+      if (!looksLikeFallback) continue;
+
+      final String nameKey = c.name.trim().toLowerCase();
+      final String? mappedKey = _legacyNameToIconKey[nameKey];
+
+      if (mappedKey == null || !isKnownIconKey(mappedKey)) {
+        continue;
+      }
+
+      final IconData fixedIcon = kCategoryIcons[mappedKey]!;
+
+      try {
+        await updateCategory(
+          id: c.id,
+          name: c.name,
+          icon: fixedIcon,
+          color: c.color,
+          type: c.type,
+        );
+        fixedCount++;
+        developer.log('🔧 [MIGRATION] Fixed icon for "${c.name}" -> $mappedKey', name: 'CategoryRepository');
+      } catch (e) {
+        developer.log('⚠️ [MIGRATION] Failed to fix "${c.name}": $e', name: 'CategoryRepository');
+      }
+    }
+
+    if (fixedCount > 0) {
+      await getCategories();
+    }
+
+    developer.log('✅ [MIGRATION] Completed. Fixed $fixedCount categor${fixedCount == 1 ? 'y' : 'ies'}.', name: 'CategoryRepository');
+  }
 }

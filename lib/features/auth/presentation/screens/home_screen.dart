@@ -20,7 +20,8 @@ import 'dart:math' as math;
 enum CategoryState { view, add, edit }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final VoidCallback? onNavigateToHistory;
+  const HomeScreen({Key? key, this.onNavigateToHistory}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -44,6 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _goToTransactionHistory() async {
+    if (widget.onNavigateToHistory != null) {
+      widget.onNavigateToHistory!();
+      return;
+    }
     setState(() => _currentTabIndex = 3);
     await Navigator.push(context, MaterialPageRoute(builder: (context) => const RecordHistoryScreen()));
     if (!mounted) return;
@@ -59,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFEDE7F6),
       body: SafeArea(
         child: _currentTabIndex == 3
-            ? _HomeDashboardBody(onSeeAllTransactions: _goToTransactionHistory) // 🎯 Index 3 (History) က ပြန်ထွက်လာရင် Home Dashboard ကို ပြန်ပြရန်
+            ? _HomeDashboardBody(onSeeAllTransactions: _goToTransactionHistory) 
             : IndexedStack(
                 index: _currentTabIndex,
                 children: _pages,
@@ -80,6 +85,21 @@ class _HomeDashboardBody extends StatefulWidget {
 class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
   bool _isBalanceVisible = true;
   String _transactionFilter = 'All';
+
+  static const List<Color> _alertColorPalette = [
+    Color(0xFFF59E0B), 
+    Color(0xFF7C3AED), 
+    Color(0xFF3B82F6), 
+    Color(0xFFEC4899), 
+    Color(0xFF14B8A6), 
+    Color(0xFFF43F5E), 
+    Color(0xFF10B981), 
+  ];
+
+  Color _colorForAlert(String id) {
+    final int hash = id.hashCode.abs();
+    return _alertColorPalette[hash % _alertColorPalette.length];
+  }
 
   final PendingTransactionRepository _pendingRepository = PendingTransactionRepository();
   List<PendingRecurringTransaction> _pendingAlerts = [];
@@ -216,10 +236,10 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
             Container(
               width: 40,
               height: 40,
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+            //  padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(color: Color(0xFFEDE7F6), borderRadius: BorderRadius.circular(12)),
+              child: ClipOval(
+               // borderRadius: BorderRadius.circular(6),
                 child: Image.asset('assets/images/logo.jpg', fit: BoxFit.cover),
               ),
             ),
@@ -240,7 +260,7 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                 child: const Icon(Icons.notifications_none_outlined, size: 22, color: Colors.black87),
               ),
               if (_pendingAlerts.isNotEmpty)
@@ -385,7 +405,7 @@ Row(
       children: [
         Row(
           children: [
-            const Text("Upcoming Alerts", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
+            const Text("Recurring Alerts", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
             const SizedBox(width: 6),
             CircleAvatar(
               radius: 9,
@@ -405,34 +425,18 @@ Row(
     );
   }
 
-  Widget _buildAlertCard(PendingRecurringTransaction item, List<CategoryItem> categories) {
+ Widget _buildAlertCard(PendingRecurringTransaction item, List<CategoryItem> categories) {
     final bool isIncome = item.type == 'income';
     final formatter = NumberFormat('#,##0');
     final bool isProcessing = _processingAlertIds.contains(item.id);
-
-    // 🛠️ Fixed: previously fell back to a freshly-constructed generic
-    // CategoryItem (always the same clock/receipt icon) whenever the
-    // category lookup missed, so every alert card looked identical and
-    // didn't match Record History. Now it falls back to a real category
-    // like the transaction tiles do, and renders the same solid-circle +
-    // white-icon style as Record History.
-    IconData icon = Icons.receipt_long_outlined;
-    Color iconColor = isIncome ? Colors.green : Colors.orange;
-    if (categories.isNotEmpty) {
-      final match = categories.firstWhere(
-        (c) => c.id == item.categoryId,
-        orElse: () => categories.first,
-      );
-      icon = match.icon;
-      iconColor = match.color;
-    }
+    final Color accentColor = _colorForAlert(item.id);
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border(left: BorderSide(color: isIncome ? Colors.green.shade300 : Colors.orange.shade300, width: 5)),
+        border: Border(left: BorderSide(color: accentColor, width: 5)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
@@ -441,18 +445,30 @@ Row(
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(radius: 18, backgroundColor: iconColor, child: Icon(icon, color: Colors.white, size: 20)),
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: accentColor,
+                child: const Icon(Icons.access_time_filled_rounded, color: Colors.white, size: 18),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(6)),
+                      child: Text('REMINDER', style: TextStyle(color: Colors.purple.shade900, fontSize: 9, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(6)),
-                          child: Text('REMINDER', style: TextStyle(color: Colors.purple.shade900, fontSize: 9, fontWeight: FontWeight.bold)),
+                        Flexible(
+                          child: Text(
+                            item.categoryName,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Container(
@@ -465,8 +481,7 @@ Row(
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(item.categoryName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                    const SizedBox(height: 2),
                     Text(
                       '${formatter.format(item.amount)} MMK payment due ${DateFormat('MMM d').format(item.transactionDate)}',
                       style: const TextStyle(color: Colors.grey, fontSize: 11),
@@ -506,9 +521,6 @@ Row(
       ),
     );
   }
-
-  // 🛠️ Recent Transactions -- last 3 from the same data Record History uses,
-  // filtered the same way (All / Expense / Income).
   Widget _buildRecentTransactionsSection(List<TransactionItem> allTransactions, bool isLoading, List<CategoryItem> categories) {
     List<TransactionItem> filtered = List<TransactionItem>.from(allTransactions);
     if (_transactionFilter != 'All') {
@@ -532,7 +544,7 @@ Row(
                 child: Row(
                   children: const [
                     Text("See all", style: TextStyle(color: Color(0xFF7C3AED), fontSize: 12, fontWeight: FontWeight.w600)),
-                    Icon(Icons.arrow_forward_ios, size: 10, color: Color(0xFF7C3AED)),
+                    Icon(Icons.arrow_back_ios_outlined, size: 10, color: Color(0xFF7C3AED)),
                   ],
                 ),
               ),
@@ -616,8 +628,6 @@ Row(
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
         child: Row(
           children: [
-            // 🛠️ Fixed: switched from a tinted circle + colored icon to a
-            // solid-color circle + white icon so it matches Record History.
             CircleAvatar(radius: 22, backgroundColor: color, child: Icon(icon, color: Colors.white, size: 22)),
             const SizedBox(width: 12),
             Expanded(
@@ -637,15 +647,6 @@ Row(
                   isExpense ? "-${formatter.format(tx.amount)}" : "+${formatter.format(tx.amount)}",
                   style: TextStyle(color: isExpense ? Colors.red : Colors.green, fontWeight: FontWeight.bold, fontSize: 15),
                 ),
-                // const SizedBox(height: 4),
-                // Container(
-                //   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                //   decoration: BoxDecoration(color: isExpense ? const Color(0xFFFFE4E6) : const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(8)),
-                //   child: Text(
-                //     isExpense ? "expense" : "income",
-                //     style: TextStyle(color: isExpense ? Colors.red : Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
-                //   ),
-                // ),
          const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),

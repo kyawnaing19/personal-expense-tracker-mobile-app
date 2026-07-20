@@ -19,13 +19,12 @@ class RecordHistoryScreen extends StatefulWidget {
   State<RecordHistoryScreen> createState() => _RecordHistoryScreenState();
 }
 
-class _RecordHistoryScreenState extends State<RecordHistoryScreen> with SingleTickerProviderStateMixin{
+class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
   String _selectedFilter = 'All'; 
   List<String> _selectedFilterCategories = [];
   String _calendarFilterType = 'none';
 
-  late TabController _filterTabController;
-final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
+  final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
 
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month;
@@ -48,28 +47,23 @@ final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
     }
   }
 
+  void _applyTypeFilter(String tab) {
+    if (tab == _selectedFilter) return;
+    setState(() {
+      _selectedFilter = tab;
+      _visibleTransactionCount = _pageSize;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-     _filterTabController = TabController(length: 3, vsync: this);
-  _filterTabController.addListener(() {
-    if (!_filterTabController.indexIsChanging) {
-      final newFilter = _filterOptions[_filterTabController.index];
-      if (newFilter != _selectedFilter) {
-        setState(() {
-          _selectedFilter = newFilter;
-          _visibleTransactionCount = _pageSize;
-        });
-      }
-    }
-  });
     BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-      _filterTabController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -643,10 +637,6 @@ final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
-          // 🛠️ Fixed: previously only called widget.onTabChanged, which is
-          // null when this screen is pushed via Navigator.push (e.g. from
-          // Home's "See all"), so tapping back did nothing. Now it falls
-          // back to Navigator.pop when there's no tab-change callback.
           onTap: () {
             if (widget.onTabChanged != null) {
               widget.onTabChanged!(0);
@@ -654,7 +644,14 @@ final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
               Navigator.pop(context);
             }
           },
-          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black))
+          //child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape:BoxShape.circle), child: const Icon(Icons.arrow_back_ios_outlined, size: 16, color: Colors.black))
+         child: Container(
+    width: 40,
+    height: 40,
+    alignment: Alignment.center,
+    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+  ),
         ),
         const Text("Transaction History", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
         const SizedBox(width: 36),
@@ -662,43 +659,65 @@ final List<String> _filterOptions = const ['All', 'Expense', 'Income'];
     );
   }
 
- Widget _buildFilterRow() {
-  return Row(
-    children: [
-      Expanded(
-        child: Container(
-        height: 45,
-  
-  decoration: BoxDecoration(
-    color: Colors.white, 
-    borderRadius: BorderRadius.circular(12),
-  ),
-  child: TabBar(
-    controller: _filterTabController,
-    labelColor: Colors.white,
-    unselectedLabelColor: Colors.black54, 
-    dividerColor: Colors.transparent,
-    indicatorSize: TabBarIndicatorSize.tab,
-    // ခရမ်းရောင် indicator
-    indicator: BoxDecoration(
-      borderRadius: BorderRadius.circular(12), 
-      color: const Color(0xFF7F3DFF),
-    ),
-    labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-    tabs: const [
-      Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('All'))),
-     Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Expense'))),
-      Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Income'))),
-    ],
-  ),
-),
-      ),
-      const SizedBox(width: 8),
-      GestureDetector(onTap: () => _showFilterBottomSheet(context), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: _selectedFilterCategories.isNotEmpty ? primaryPurple : Colors.white, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.filter_alt_outlined, color: _selectedFilterCategories.isNotEmpty ? Colors.white : Colors.black54, size: 20))),
-      const SizedBox(width: 8),
-      GestureDetector(onTap: _showCalendarFilterDialog, child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: _calendarFilterType != 'none' ? primaryPurple : Colors.white, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.calendar_month_outlined, color: _calendarFilterType != 'none' ? Colors.white : Colors.black54, size: 20))),
-    ],
-  );
-}
+  Widget _buildFilterRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 45,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: _filterOptions.map((tab) {
+                bool isSelected = _selectedFilter == tab;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => _applyTypeFilter(tab),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isSelected ? primaryPurple : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          tab,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? Colors.white : Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _showFilterBottomSheet(context),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: _selectedFilterCategories.isNotEmpty ? primaryPurple : Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Icon(Icons.filter_alt_outlined, color: _selectedFilterCategories.isNotEmpty ? Colors.white : Colors.black54, size: 20),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: _showCalendarFilterDialog,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: _calendarFilterType != 'none' ? primaryPurple : Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Icon(Icons.calendar_month_outlined, color: _calendarFilterType != 'none' ? Colors.white : Colors.black54, size: 20),
+          ),
+        ),
+      ],
+    );
+  }
 }

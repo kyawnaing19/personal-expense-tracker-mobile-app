@@ -15,15 +15,26 @@ class SetNewBudgetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String monthLabel = "${kMonthNamesShort[month - 1]} $year";
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double hPad = (screenWidth * 0.05).clamp(16.0, 28.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFEBE0FF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_back_ios_outlined, size: 18, color: Colors.black),
+            ),
+          ),
         ),
         title: const Text("Budget", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -40,7 +51,7 @@ class SetNewBudgetScreen extends StatelessWidget {
         },
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: EdgeInsets.symmetric(horizontal: hPad),
             child: Column(
               children: [
                 Container(

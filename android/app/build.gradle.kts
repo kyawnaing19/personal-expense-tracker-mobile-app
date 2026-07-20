@@ -35,7 +35,6 @@ android {
 
     buildTypes {
         release {
-            // ခုနကဆောက်ထားတဲ့ release signingConfig ကို ဒီမှာ သုံးပါ
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false

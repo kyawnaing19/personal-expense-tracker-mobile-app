@@ -7,8 +7,6 @@ import '../../../models/balance_model.dart';
 class BalanceRepository {
   final Dio _dio = DioClient.getInstance();
 
-  // 1. [GET] /groups/{groupId}/balance
-  // Group ထဲက member တစ်ယောက်ချင်းစီရဲ့ total receivable/payable list
   Future<List<MemberBalanceModel>> getGroupBalance(String groupId) async {
     try {
       final response = await _dio.get(ApiConstants.groupBalance(groupId));
@@ -24,9 +22,6 @@ class BalanceRepository {
     }
   }
 
-  // 2. [GET] /groups/{groupId}/balance/{userId}/details
-  // Member တစ်ယောက်ရဲ့ "View Balance Detail" ကိုနှိပ်လိုက်ရင်
-  // Expense split တစ်ခုချင်းစီအလိုက် detail
   Future<MemberBalanceDetailModel> getMemberBalanceDetails({
     required String groupId,
     required String userId,
@@ -52,8 +47,6 @@ class BalanceRepository {
     return null;
   }
   
-// 3. [GET] /groups/{groupId}/balance/{userId}/history
-// "Settlement History" screen အတွက် - confirm ဖြစ်ပြီးသား settlement history
   Future<SettlementHistoryModel> getSettlementHistory({
   required String groupId,
   required String userId,

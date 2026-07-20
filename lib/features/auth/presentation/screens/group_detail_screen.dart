@@ -34,9 +34,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     super.initState();
     _group = widget.group;
     _expenseBloc = ExpenseBloc(ExpenseRepository());
-    // member list, join_code စတာတွေအပါအဝင် အသေးစိတ်ကို ခေါ်မယ်
     context.read<GroupBloc>().add(LoadGroupDetail(id: _group.id));
-    // Expense Transactions list ကို ခေါ်မယ်
     _expenseBloc.add(LoadGroupExpenses(groupId: _group.id));
   }
 
@@ -51,10 +49,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     _expenseBloc.add(LoadGroupExpenses(groupId: _group.id));
   }
 
-  // + FAB ကနေ Create Expense form ကိုသွားမယ် - ExpenseBloc instance တူတူ
-  // ဆက်သုံးအောင် BlocProvider.value နဲ့ ပို့ပေးမယ် (create success ဖြစ်ရင်
-  // list ကို auto refresh လုပ်ပြီးသားမို့ ဒီနေရာမှာ ထပ် _refresh() လုပ်စရာ
-  // မလိုပါဘူး)
   Future<void> _openCreateExpense() async {
     await Navigator.push(
       context,
@@ -67,9 +61,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     );
   }
 
-  // "Group Expenses" ခေါင်းစီးဘေးက person-add icon ကို နှိပ်ရင်
-  // "Generate Invite Code" နှင့် "Add Members" ဆိုတဲ့ ရွေးချယ်စရာ ၂ခု ပြမယ်
-  // ("It's just you here" card နဲ့ တူညီတဲ့ button style ကို သုံးထားတယ်)
   Future<void> _openInviteChoiceSheet() async {
     await showModalBottomSheet(
       context: context,
@@ -164,11 +155,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _openGenerateInviteCode() async {
-    // Dialog ကိုယ်တိုင်က ဖွင့်တာနဲ့ code auto-generate လုပ်ပြီး
-    // JoinCodeGenerated ကနေတဆင့် _group ကို listener က update ပေးနှင့်ပြီးသား
-    // ဖြစ်လို့ ဒီနေရာမှာ ထပ် _refresh() လုပ်စရာမလိုပါဘူး - (ထပ်လုပ်ခဲ့ရင်
-    // LoadGroupDetail က GroupsScreen အတွက် ပြင်ပေးထားတဲ့ GroupLoaded state ကို
-    // ထပ်ဖျက်ပြီး "My Groups" list ပြန်ပျောက်စေတဲ့ bug ဖြစ်စေတယ်)
     await showDialog(
       context: context,
       builder: (_) => _GenerateInviteCodeDialog(groupId: _group.id),
@@ -176,9 +162,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _openAddMembers() async {
-    // Member ထည့်အောင်မြင်ရင် MemberActionSuccess ကနေတဆင့် _group ကို
-    // listener က update ပေးနှင့်ပြီးသား ဖြစ်လို့ ဒီနေရာမှာလည်း ထပ်
-    // _refresh() လုပ်စရာမလိုပါဘူး
     await showDialog(
       context: context,
       builder: (_) => _AddMembersDialog(groupId: _group.id),
@@ -193,6 +176,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       backgroundColor: kGroupBg,
       floatingActionButton: FloatingActionButton(
         backgroundColor: kGroupPurple,
+        shape: const CircleBorder(),
         onPressed: _openCreateExpense,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -223,7 +207,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _RoundIconButton(
-                        icon: Icons.arrow_back,
+                        icon: Icons.arrow_back_ios_outlined,
                         onTap: () => Navigator.pop(context),
                       ),
                       const Text(
@@ -241,9 +225,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           _RoundIconButton(
                             icon: Icons.settings_outlined,
                             onTap: () async {
-                              // Settings screen ကိုသွားမယ်။ Delete Group
-                              // အောင်မြင်ရင် 'deleted' ကိုပြန်ပို့ပြီး
-                              // detail screen ကိုပါ ပိတ်ပေးမယ်
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -313,10 +294,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     child: BlocConsumer<ExpenseBloc, ExpenseStateBase>(
                       bloc: _expenseBloc,
                       listener: (context, expenseState) {
-                        // Fetch/parse fail ဖြစ်ရင် "No expenses" empty box
-                        // အဖြစ် silent ဖျောက်မထားဘဲ error ကို ပြပေးမယ် -
-                        // ဒါမှ backend response shape (field name / wrapper)
-                        // မှားနေတာကို debug လုပ်လို့ရမယ်
                         if (expenseState is ExpenseError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -357,36 +334,37 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           ),
         ),
       );
-       _refresh(); // delete ဖြစ်ရင် list ပြန်ဆွဲ
+       _refresh(); 
     },
     child: _ExpenseCard(expense: exp),
   );
 },
                           );
                         }
-                        // expense array မရှိသေးရင် (group ကို create
-                        // အသစ်လုပ်ထားတာ / expense တစ်ခုမှ မထည့်ရသေးရင်)
-                        // empty-state card ကိုပြမယ်
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.receipt_long_outlined,
-                                  size: 36, color: Colors.grey[400]),
-                              const SizedBox(height: 10),
-                              Text(
-                                'No expenses or group members yet. Start\nadding expenses to track balance.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: Colors.grey[500], fontSize: 12),
-                              ),
-                            ],
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.receipt_long_outlined,
+                                    size: 36, color: Colors.grey[400]),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'No expenses or group members yet. Start\nadding expenses to track balance.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Colors.grey[500], fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -402,8 +380,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     );
   }
 }
-
-// ---------------- Expense Transaction card ----------------
 
 const List<Color> _kAvatarColors = [
   Color(0xFF6200EE), // purple
@@ -442,9 +418,10 @@ class _ExpenseCard extends StatelessWidget {
 
   String _formatTime(DateTime? d) {
     if (d == null) return '';
-    final hh = d.hour.toString().padLeft(2, '0');
-    final mm = d.minute.toString().padLeft(2, '0');
-    final ss = d.second.toString().padLeft(2, '0');
+    final local = d.toLocal(); 
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    final ss = local.second.toString().padLeft(2, '0');
     return '$hh:$mm:$ss';
   }
 
@@ -452,9 +429,9 @@ class _ExpenseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final payerName = expense.paidBy?.name ?? '';
     final participants = expense.participants;
-    // avatar circle max 3ခု ပြပြီး ကျန်တာကို "+N" badge နဲ့ပြမယ် (Image 6)
     final visible = participants.take(3).toList();
     final extra = participants.length - visible.length;
+    final hasExtra = extra > 0;
 
     return Container(
       width: double.infinity,
@@ -504,9 +481,20 @@ class _ExpenseCard extends StatelessWidget {
   child: Stack(
     clipBehavior: Clip.none,
                   children: [
+                    if (hasExtra)
+                      Positioned(
+                        right: 0,
+                        child: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.grey[400],
+                          child: Text('+$extra',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 9)),
+                        ),
+                      ),
                     for (int i = 0; i < visible.length; i++)
                       Positioned(
-                        right: i * 16.0,
+                        right: (hasExtra ? i + 1 : i) * 16.0,
                         child: CircleAvatar(
                           radius: 12,
                           backgroundColor: _avatarColorFor(visible[i].name),
@@ -515,17 +503,6 @@ class _ExpenseCard extends StatelessWidget {
                             style: const TextStyle(
                                 color: Colors.white, fontSize: 10),
                           ),
-                        ),
-                      ),
-                    if (extra > 0)
-                      Positioned(
-                        right: visible.length * 16.0,
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.grey[400],
-                          child: Text('+$extra',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 9)),
                         ),
                       ),
                   ],
@@ -538,8 +515,6 @@ class _ExpenseCard extends StatelessWidget {
     );
   }
 }
-
-// ---------------- Generate Invite Code popup ----------------
 
 class _GenerateInviteCodeDialog extends StatefulWidget {
   final String groupId;
@@ -555,7 +530,6 @@ class _GenerateInviteCodeDialogState
   @override
   void initState() {
     super.initState();
-    // popup ပွင့်တာနဲ့ code တစ်ခုချက်ချင်း ထုတ်ပေးမယ်
     context
         .read<GroupBloc>()
         .add(GenerateJoinCodeRequested(groupId: widget.groupId));
@@ -673,7 +647,6 @@ class _GenerateInviteCodeDialogState
   }
 }
 
-// ---------------- Add Members popup ----------------
 
 class _AddMembersDialog extends StatefulWidget {
   final String groupId;
@@ -696,7 +669,7 @@ class _AddMembersDialogState extends State<_AddMembersDialog> {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gmail account ထည့်ပေးပါ')),
+        const SnackBar(content: Text('Add a valid Gmail account.')),
       );
       return;
     }
@@ -729,8 +702,6 @@ class _AddMembersDialogState extends State<_AddMembersDialog> {
               left: 20,
               right: 20,
               top: 20,
-              // keyboard ပွင့်လာရင် dialog ကို ခုန်တက်ပေးဖို့ - မဟုတ်ရင်
-              // TextField ကို keyboard ဖုံးလွှမ်းပြီး bottom overflow တက်တယ်
               bottom: 20 + MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Column(

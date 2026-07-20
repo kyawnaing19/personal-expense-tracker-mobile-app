@@ -25,7 +25,6 @@ class BalanceError extends BalanceStateBase {
   BalanceError(this.message);
 }
 
-// balance_state.dart
 class SettlementHistoryLoading extends BalanceStateBase {}
 
 class SettlementHistoryLoaded extends BalanceStateBase {

@@ -5,7 +5,6 @@ abstract class SettlementRequestStateBase {}
 class SettlementRequestInitial extends SettlementRequestStateBase {}
 
 class SettlementRequestLoading extends SettlementRequestStateBase {
-  // tab/filter ကိုပြထားနိုင်ရန် loading ဖြစ်နေချိန်မှာလဲ role/status ကို ယူဆောင်သွားမယ်
   final SettlementRequestRole role;
   final SettlementRequestStatus? statusFilter;
   SettlementRequestLoading({required this.role, this.statusFilter});
@@ -15,9 +14,6 @@ class SettlementRequestLoaded extends SettlementRequestStateBase {
   final SettlementRequestRole role;
   final SettlementRequestStatus? statusFilter;
   final List<SettlementRequestModel> requests;
-
-  // confirm/reject API ခေါ်နေဆဲဖြစ်တဲ့ request id တွေ (card ရဲ့
-  // Confirm/Reject ခလုတ်ကို loading/disabled ပြဖို့)
   final Set<String> processingRequestIds;
 
   SettlementRequestLoaded({

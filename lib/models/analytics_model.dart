@@ -46,9 +46,6 @@ class AnalyticsResponse {
   final double overallTotal;
   final List<AnalyticsData> breakdown;
   final List<MonthlyBarData> monthlyData;
-
-  // 🆕 [FIX] Stale-data bug ကို ဖြေရှင်းဖို့ ဒီ data က ဘယ် selection
-  // (type/period/subPeriod) အတွက် fetch လုပ်ခဲ့တာလဲဆိုတာ မှတ်ထားရန်
   final String type;
   final String period;
   final String subPeriod;

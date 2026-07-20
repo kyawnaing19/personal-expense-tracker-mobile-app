@@ -38,12 +38,6 @@ class _MembersBalanceScreenState extends State<MembersBalanceScreen> {
     context.read<BalanceBloc>().add(LoadGroupBalance(groupId: widget.groupId));
   }
 
-  // NOTE: BalanceBloc တစ်ခုတည်းကို list screen နဲ့ detail screen ၂ခုစလုံး
-  // share လုပ်ခဲ့ရင် (BlocProvider.value) - detail ကိုဝင်တာနဲ့ bloc ရဲ့ state
-  // ဟာ BalanceDetailLoaded ဖြစ်သွားပြီး, back ပြန်လာတဲ့အခါ list screen ဟာ
-  // BalanceListLoaded ကိုပြန်ရှာမတွေ့တော့ဘဲ blank ဖြစ်သွားတယ်။ ဒါကြောင့်
-  // detail screen ကို bloc အသစ် တစ်ခုသီးသန့် ပေးလိုက်တယ် (parent ရဲ့ list
-  // state ကို မထိခိုက်စေဘူး)
   void _openDetail(BuildContext ctx, MemberBalanceModel member) {
     Navigator.push(
       ctx,
@@ -86,7 +80,7 @@ class _MembersBalanceScreenState extends State<MembersBalanceScreen> {
               Row(
                 children: [
                   _RoundIconButton(
-                    icon: Icons.arrow_back,
+                    icon: Icons.arrow_back_ios_outlined,
                     onTap: () => Navigator.pop(context),
                   ),
                   const Expanded(

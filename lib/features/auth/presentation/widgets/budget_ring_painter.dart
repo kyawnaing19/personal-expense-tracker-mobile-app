@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class BudgetRingPainter extends CustomPainter {
-  final num percentage; // can exceed 100, may be a decimal like 101.6
+  final num percentage; 
   final bool isExceeded;
 
   BudgetRingPainter({required this.percentage, required this.isExceeded});
@@ -25,10 +25,8 @@ class BudgetRingPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    // Background track (full circle)
     canvas.drawCircle(center, radius, trackPaint);
 
-    // Progress arc, starting at the top (-90deg)
     final clampedPercent = isExceeded ? 100 : percentage.clamp(0, 100);
     final sweepAngle = 2 * pi * (clampedPercent / 100);
     canvas.drawArc(

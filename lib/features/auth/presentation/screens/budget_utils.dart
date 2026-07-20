@@ -15,21 +15,15 @@ String formatAmount(num value) {
   return formatter.format(value);
 }
 
-/// Returns the list of selectable years starting at [currentYear] (budgets can
-/// only be set for the current month/year or a future one).
+
 List<int> selectableYears(int currentYear, {int spanForward = 4}) {
   return List.generate(spanForward + 1, (i) => currentYear + i);
 }
 
-/// Years selectable in the filter panel — unlike budget creation, viewing
-/// past months is allowed, so this spans a few years back and forward.
 List<int> filterableYears(int currentYear, {int spanBack = 3, int spanForward = 4}) {
   return List.generate(spanBack + spanForward + 1, (i) => currentYear - spanBack + i);
 }
 
-/// Returns the list of selectable months (1-12) for a given [selectedYear].
-/// If [selectedYear] is the current year, only the current month and months
-/// after it are returned. Otherwise all 12 months are selectable.
 List<int> selectableMonths({
   required int selectedYear,
   required int currentMonth,

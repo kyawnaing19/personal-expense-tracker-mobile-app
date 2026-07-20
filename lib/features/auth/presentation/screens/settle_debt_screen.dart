@@ -23,8 +23,6 @@ String _formatNumber(int n) {
   return (isNeg ? '-' : '') + buffer.toString();
 }
 
-/// Profile > "Settle Debt" ကနေဝင်ရင် login ဝင်ထားသူနဲ့ သက်ဆိုင်တဲ့
-/// (group အားလုံးပေါင်း) ကျန်နေသေးတဲ့ debt အားလုံးကို card list အနေနဲ့ ပြမယ့် screen
 class SettleDebtScreen extends StatelessWidget {
   const SettleDebtScreen({Key? key}) : super(key: key);
 
@@ -116,24 +114,8 @@ class _SettleDebtView extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               itemCount: splits.length,
               separatorBuilder: (_, __) => const SizedBox(height: 16),
-              // itemBuilder: (ctx, i) {
-              //   final split = splits[i];
-              //   final isPending = pendingIds.contains(split.id);
-              //   return _SettleDebtCard(
-              //     split: split,
-              //     isPending: isPending,
-              //     onSettleNow: () => _openPayAmountDialog(
-              //       context,
-              //       split: split,
-              //       myName: myName,
-              //     ),
-              //   );
-              // },
               itemBuilder: (ctx, i) {
   final split = splits[i];
-  // local claim-in-flight state (pendingClaimSplitIds) OR backend ရဲ့
-  // settlement_requests.status == "pending" (persisted, app ပြန်ဖွင့်လည်း
-  // မပျောက်ဘူး) - ၂ခုထဲက တစ်ခုခု true ဖြစ်ရင် "Pending" ပြမယ်
   final isPending = pendingIds.contains(split.id) || split.hasPendingClaim;
   return _SettleDebtCard(
     split: split,
@@ -173,7 +155,6 @@ class _SettleDebtView extends StatelessWidget {
   }
 }
 
-/// Settle Debt list ထဲက debt card တစ်ခုစီ (Image 1 / 4 / 5 ပုံစံ)
 class _SettleDebtCard extends StatelessWidget {
   final ExpenseSplitModel split;
   final bool isPending;
@@ -311,30 +292,26 @@ else
   }
 }
 
-/// A small white rounded-square back button used on both Settle Debt pages
-/// (list screen + pay-amount screen), matching the mockup exactly.
 class _RoundedBackButton extends StatelessWidget {
   const _RoundedBackButton();
 
   @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.pop(context),
-        child: const Padding(
-          padding: EdgeInsets.all(8),
-          child: Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 16),
-        ),
-      ),
-    );
-  }
-}
 
-/// "Settle Now" ကိုနှိပ်လိုက်ရင် push ဖြစ်လာမယ့် Pay Amount page (popup မဟုတ်ပါ -
-/// image ထဲကအတိုင်း route အသစ်တစ်ခုအနေနဲ့ ပေါ်လာမယ်)
+Widget build(BuildContext context) {
+  return Material(
+    color: Colors.white,
+    shape: const CircleBorder(),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => Navigator.pop(context),
+      child: const Padding(
+        padding: EdgeInsets.all(8),
+        child: Icon(Icons.arrow_back_ios_outlined, color: Colors.black87, size: 16),
+      ),
+    ),
+  );
+}
+}
 class _PayAmountScreen extends StatefulWidget {
   final ExpenseSplitModel split;
   final String myName;
@@ -422,7 +399,7 @@ class _PayAmountScreenState extends State<_PayAmountScreen> {
                       Text(widget.myName, style: const TextStyle(fontSize: 12)),
                     ],
                   ),
-                  // ">>": နာမည်နှစ်ခုရဲ့အလယ်တည့်တည့်မှာ၊ မှိန်မှိန်လေးအဝိုင်းနောက်ခံနဲ့
+                  
                   Container(
                     width: 40,
                     height: 40,

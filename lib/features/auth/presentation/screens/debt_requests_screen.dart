@@ -15,17 +15,18 @@ const Color kConfirmedText = Color(0xFF2E9E5B);
 const Color kRejectedBg = Color(0xFFFBDCE0);
 const Color kRejectedText = Color(0xFFD8455D);
 
-/// Profile -> "Debt Requests" ကနေဝင်ရင် ပေါ်မယ့် screen။
-/// [BlocProvider] ကို widget ရဲ့ အပြင်ဘက်ကနေ wrap ပေးထားပြီးသား ဖြစ်ပါက
-/// [DebtRequestsView] တစ်ခုတည်း တိုက်ရိုက်သုံးလို့ရပါတယ်။
 class DebtRequestsScreen extends StatelessWidget {
-  const DebtRequestsScreen({Key? key}) : super(key: key);
+  final SettlementRequestRole initialRole;
+  const DebtRequestsScreen({
+    Key? key,
+    this.initialRole = SettlementRequestRole.payer,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => SettlementRequestBloc(SettlementRequestRepository())
-        ..add(LoadSettlementRequests(role: SettlementRequestRole.payer)),
+        ..add(LoadSettlementRequests(role: initialRole)),
       child: const DebtRequestsView(),
     );
   }
@@ -65,32 +66,37 @@ class DebtRequestsView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-const _RoundedIconButton(
-            child: Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+Widget _buildAppBar(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Row(
+      children: [
+        _RoundedIconButton(
+          circle: true,
+          onTap: () => Navigator.of(context).maybePop(),
+          child: const Icon(
+            Icons.arrow_back_ios_outlined,
+            size: 16,
+            color: Colors.black87,
           ),
-          const Expanded(
-            child: Center(
-              child: Text(
-                'Debt Requests',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
+        ),
+        const Expanded(
+          child: Center(
+            child: Text(
+              'Debt Requests',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
               ),
             ),
           ),
-          const SizedBox(width: 40), // back button နဲ့ balance ဖြစ်အောင်
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(width: 40),
+      ],
+    ),
+  );
+}
 
   Widget _buildRoleAndFilterBar(BuildContext context) {
     return BlocBuilder<SettlementRequestBloc, SettlementRequestStateBase>(
@@ -371,21 +377,28 @@ class _RoleTab extends StatelessWidget {
 class _RoundedIconButton extends StatelessWidget {
   final Widget child;
   final bool active;
+  final bool circle;
   final VoidCallback? onTap;
 
   const _RoundedIconButton({
     required this.child,
     this.active = false,
+    this.circle = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final ShapeBorder shape = circle
+        ? const CircleBorder()
+        : RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+
     return Material(
       color: active ? kDebtPurple : Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        customBorder: shape,
         onTap: onTap ?? () => Navigator.maybePop(context),
         child: Padding(
           padding: const EdgeInsets.all(12),

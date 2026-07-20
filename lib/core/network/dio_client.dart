@@ -1,11 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
+import 'package:expense_tracker/core/storage/secure_storage.dart';
 
 class DioClient {
-  static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+static final _storage = AppSecureStorage.instance;
 
   static Dio getInstance() {
     final dio = Dio(

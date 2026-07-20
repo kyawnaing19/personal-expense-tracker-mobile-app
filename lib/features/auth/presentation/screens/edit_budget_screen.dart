@@ -24,13 +24,22 @@ class EditBudgetScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFEBE0FF),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+appBar: AppBar(
+  backgroundColor: Colors.transparent,
+  elevation: 0,
+  leading: Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
         ),
+        child: const Icon(Icons.arrow_back_ios_outlined, size: 18, color: Colors.black),
+      ),
+    ),
+  ),
         title: const Text("Budget", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),

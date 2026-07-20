@@ -8,9 +8,6 @@ class SettleDebtLoading extends SettleDebtStateBase {}
 
 class SettleDebtLoaded extends SettleDebtStateBase {
   final List<ExpenseSplitModel> splits;
-
-  // claim-payment API ကို ခေါ်နေဆဲဖြစ်တဲ့ split id တွေ (ဒီ card ရဲ့
-  // "Settle Now" ခလုတ်ကို loading/disabled ပြဖို့)
   final Set<String> pendingClaimSplitIds;
 
   SettleDebtLoaded({
@@ -29,8 +26,6 @@ class SettleDebtLoaded extends SettleDebtStateBase {
   }
 }
 
-// claim-payment တစ်ခုအောင်မြင်ရင် တိုတိုတိုးဖြစ်ပေါ်တဲ့ transient state
-// (SnackBar ပြဖို့) - ပြီးရင် ချက်ချင်း SettleDebtLoaded ဆီ ပြန်ပြောင်းမယ်
 class ClaimPaymentSuccess extends SettleDebtStateBase {
   final String splitId;
   final List<ExpenseSplitModel> splits;

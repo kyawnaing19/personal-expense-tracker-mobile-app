@@ -27,7 +27,7 @@ class UpdateBudgetRequested extends BudgetEvent {
   final String categoryId;
   final double amount;
   final int alertPercentage;
-  final int month; // kept only so the bloc can reload the correct month afterwards
+  final int month; 
   final int year;
 
   UpdateBudgetRequested({

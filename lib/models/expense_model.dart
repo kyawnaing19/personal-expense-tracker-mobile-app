@@ -2,8 +2,8 @@ class ExpensePerson {
   final String id;
   final String name;
   final String? avatar;
-  final int? share; // ဒီ person ကျခံရမယ့် ပမာဏ (custom/equal split breakdown)
-  final bool isSettled; // ဒီ person ရဲ့ share ပြေပြီးလား
+  final int? share; 
+  final bool isSettled; 
 
   ExpensePerson({
     required this.id,
@@ -39,8 +39,8 @@ class ExpenseModel {
   final int amount;
   final DateTime expenseDate;
   final DateTime? createdAt;
-  final String splitType; // "equally" | "custom"
-  final bool? includePayer; // 'equally' split အတွက် - payer ကိုယ်တိုင် share ပါခံလား
+  final String splitType; 
+  final bool? includePayer; 
   final ExpensePerson? paidBy;
   final List<ExpensePerson> participants;
 
@@ -57,19 +57,7 @@ class ExpenseModel {
     this.participants = const [],
   });
 
-  // NOTE: backend ရဲ့ GET /groups/{groupId}/expenses response field name
-  // အတိအကျကို sample မရသေးလို့ Laravel convention အလိုက် ဖြစ်နိုင်တဲ့
-  // key name အမျိုးမျိုးကို fallback အနေနဲ့ ကြိုတွေ့ပေးထားတယ်
-  // (paid_by/payer/user, participants/splits/members)။ Response အစစ်ရရင်
-  // ဒီ fromJson ကို actual field name တွေအတိုင်း ချိန်ပေးဖို့ လိုမယ်
   factory ExpenseModel.fromJson(Map<String, dynamic> json) {
-    // ExpensePerson? paidBy;
-    // // final paidByJson = json['paid_by'] ?? json['payer'] ?? json['user'];
-    // final paidByJson = json['payer'] ?? json['user'] ??
-    // (json['paid_by'] is Map<String, dynamic> ? json['paid_by'] : null);
-    // if (paidByJson is Map<String, dynamic>) {
-    //   paidBy = ExpensePerson.fromJson(paidByJson);
-    // }
     ExpensePerson? paidBy;
 final payerObj = json['payer'] ?? json['user'];
 if (payerObj is Map<String, dynamic>) {

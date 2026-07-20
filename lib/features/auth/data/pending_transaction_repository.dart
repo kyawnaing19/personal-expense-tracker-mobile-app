@@ -4,13 +4,6 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../models/pending_recurring_transaction_model.dart';
 
-/// Talks to the "Upcoming Alerts" backend: the list of recurring-transaction
-/// occurrences waiting for Accept/Reject, plus the accept/reject actions
-/// themselves.
-///
-///   GET  /transactions-recurring        -> list of pending occurrences
-///   POST /transactions/{id}/accept      -> accept one occurrence
-///   POST /transactions/{id}/reject      -> reject one occurrence
 class PendingTransactionRepository {
   final Dio _dio = DioClient.getInstance();
 
@@ -21,9 +14,6 @@ class PendingTransactionRepository {
         final List<dynamic> data = response.data['data'] ?? [];
         return data
             .map((json) => PendingRecurringTransaction.fromJson(json))
-            // Defensive filter -- only ever surface occurrences that are
-            // still actually pending, in case the backend ever returns
-            // already-accepted/rejected rows too.
             .where((tx) => tx.status == 'pending')
             .toList();
       }

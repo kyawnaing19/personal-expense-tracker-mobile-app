@@ -12,7 +12,8 @@ import 'edit_budget_screen.dart';
 import 'remove_budget_dialog.dart';
 
 class BudgetScreen extends StatefulWidget {
-  const BudgetScreen({super.key});
+  final String? highlightCategoryId;
+  const BudgetScreen({super.key, this.highlightCategoryId});
 
   @override
   State<BudgetScreen> createState() => _BudgetScreenState();
@@ -23,6 +24,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
   late int _year;
 
   bool _showFilterPanel = false;
+
+  final Map<String, GlobalKey> _itemKeys = {};
+  bool _hasHandledHighlight = false;
 
   @override
   void initState() {
@@ -55,10 +59,33 @@ class _BudgetScreenState extends State<BudgetScreen> {
     _reload();
   }
 
+  void _handleHighlightIfNeeded(List<BudgetItem> budgets) {
+    if (_hasHandledHighlight) return;
+    if (widget.highlightCategoryId == null) return;
+    if (budgets.isEmpty) return;
+
+    final match = budgets.where((b) => b.categoryId == widget.highlightCategoryId);
+    if (match.isEmpty) return;
+
+    _hasHandledHighlight = true;
+    final target = match.first;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _itemKeys[target.id];
+      if (key?.currentContext != null) {
+        Scrollable.ensureVisible(
+          key!.currentContext!,
+          duration: const Duration(milliseconds: 400),
+          alignment: 0.2,
+        );
+      }
+      Future.delayed(const Duration(milliseconds: 450), () {
+        if (mounted) _openMenu(target);
+      });
+    });
+  }
+
   void _openMenu(BudgetItem budget) {
-    // Close the filter box before opening the bottom sheet so the filter
-    // icon can't be left looking "active" while its panel is hidden behind
-    // other content.
     _closeFilterPanel();
     showModalBottomSheet(
       context: context,
@@ -102,15 +129,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Widget build(BuildContext context) {
     final String monthLabel = "${kMonthNamesShort[_month - 1]} $_year";
     final years = filterableYears(DateTime.now().year);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double hPad = (screenWidth * 0.05).clamp(16.0, 28.0); 
+    final double titleFontSize = (screenWidth * 0.043).clamp(15.0, 18.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFEBE0FF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(11),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.black),
+            ),
+          ),
         ),
         title: const Text("Budget", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -123,7 +162,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: _showFilterPanel ? const Color(0xFF8A4BEB) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                 shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.filter_alt_outlined,
@@ -135,6 +174,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
         ],
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20.0),
+        child: FloatingActionButton(
+          onPressed: _goToSetNewBudget,
+          backgroundColor: const Color(0xFF8A4BEB),
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: BlocConsumer<BudgetBloc, BudgetStateBase>(
         listener: (context, state) {
           if (state is BudgetError) {
@@ -147,11 +196,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
           final bool isLoading = state is BudgetLoading;
           final List<BudgetItem> budgets = state is BudgetLoaded ? state.budgets : [];
 
+          if (!isLoading) _handleHighlightIfNeeded(budgets);
+
           return Column(
             children: [
-              // Header card
               Container(
-                margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                margin: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
                 padding: const EdgeInsets.all(20),
                 width: double.infinity,
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
@@ -160,7 +210,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   children: [
                     Text(
                       "Budget Categories : $monthLabel",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: titleFontSize),
                     ),
                     if (!isLoading && budgets.isEmpty) ...[
                       const SizedBox(height: 12),
@@ -172,9 +222,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   ],
                 ),
               ),
-
-              // Filter panel (month/year picker) — only ever rendered when
-              // _showFilterPanel is true, which only the filter icon sets.
               AnimatedSize(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeInOut,
@@ -182,7 +229,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 child: !_showFilterPanel
                     ? const SizedBox(width: double.infinity)
                     : Container(
-                        margin: const EdgeInsets.fromLTRB(20, 15, 20, 0),
+                        margin: EdgeInsets.fromLTRB(hPad, 15, hPad, 0),
                         padding: const EdgeInsets.all(20),
                         width: double.infinity,
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
@@ -225,32 +272,38 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     : budgets.isEmpty
                         ? const SizedBox.shrink()
                         : ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(20, 15, 20, 0),
+                            padding: EdgeInsets.fromLTRB(hPad, 15, hPad, 90),
                             itemCount: budgets.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 15),
                             itemBuilder: (context, index) {
                               final budget = budgets[index];
-                              return BudgetCard(
+                              final isHighlighted = widget.highlightCategoryId != null &&
+                                  budget.categoryId == widget.highlightCategoryId;
+
+                              final key = _itemKeys.putIfAbsent(budget.id, () => GlobalKey());
+
+                              final card = BudgetCard(
                                 budget: budget,
                                 onMenuTap: () => _openMenu(budget),
                               );
+
+                              if (!isHighlighted) {
+                                return KeyedSubtree(key: key, child: card);
+                              }
+
+                              return KeyedSubtree(
+                                key: key,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFF8A4BEB), width: 2),
+                                  ),
+                                  child: card,
+                                ),
+                              );
                             },
                           ),
-              ),
-
-              // Set New Budget Button
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: ElevatedButton.icon(
-                  onPressed: _goToSetNewBudget,
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text("Set New Budget", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8A4BEB),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                ),
               ),
             ],
           );

@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:expense_tracker/cache-first/online-refresh/silent_refresh_registry.dart';
 import 'package:expense_tracker/features/auth/data/category_repository.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/category_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,18 +16,19 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryStateBase> {
   }
 
   Future<void> _onLoadCategories(LoadCategories event, Emitter<CategoryStateBase> emit) async {
-    developer.log('🎯 [BLOC EVENT] LoadCategories Triggered', name: 'CategoryBloc');
+    developer.log('[BLOC EVENT] LoadCategories Triggered', name: 'CategoryBloc');
     
     emit(CategoryLoading());
     try {
       final categories = await _repository.getCategories();
       emit(CategoryLoaded(categories));
-      developer.log('🎯 [BLOC STATE] Emitting Loaded. Total Items: ${categories.length}', name: 'CategoryBloc');
+      developer.log('[BLOC STATE] Emitting Loaded. Total Items: ${categories.length}', name: 'CategoryBloc');
     } catch (e) {
-      developer.log('🎯 [BLOC ERROR] Load failed: $e', name: 'CategoryBloc');
+      developer.log('[BLOC ERROR] Load failed: $e', name: 'CategoryBloc');
       emit(CategoryError(e.toString()));
     }
   }
+
 
   Future<void> _onAddCategory(AddCategoryRequested event, Emitter<CategoryStateBase> emit) async {
     try {
@@ -73,4 +75,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryStateBase> {
     emit(CategoryLoaded(categories));
   }
 }
+
+ @override
+  Future<void> close() {
+    SilentRefreshRegistry.instance.unregister('categories');
+    return super.close();
+  }
 }

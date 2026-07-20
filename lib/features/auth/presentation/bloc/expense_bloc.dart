@@ -71,7 +71,9 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseStateBase> {
         splits: event.splits,
       );
       emit(ExpenseUpdateSuccess(expense));
-      emit(ExpenseDetailLoaded(expense));
+      final freshExpense =
+          await _repository.getExpenseDetail(event.expenseId);
+      emit(ExpenseDetailLoaded(freshExpense));
       final expenses = await _repository.getGroupExpenses(event.groupId);
       emit(ExpenseListLoaded(groupId: event.groupId, expenses: expenses));
     } catch (e) {

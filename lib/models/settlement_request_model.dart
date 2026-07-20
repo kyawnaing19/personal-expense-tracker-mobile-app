@@ -1,24 +1,11 @@
-/// GET /settlement-requests?role=payer|claimant ရဲ့ list item တစ်ခုစီ
-///
-/// role=payer ("Received Requests" - ကိုယ်က ငွေရှင်/payer, သူများကျခံပြီးကြောင်း
-/// claim တင်ထားတာကို confirm/reject လုပ်ဖို့) response ထဲမှာ:
-///   { id, group, expense, claimed_by, amount, status, created_at }
-///
-/// role=claimant ("Sent Requests" - ကိုယ်တိုင်က settle request တင်ခဲ့တာ)
-/// response ထဲမှာ:
-///   { id, group, expense, paid_to, amount, status, created_at }
-///
-/// field နှစ်ခုလုံးကို တစ်ခုတည်းသော model ထဲမှာ ပေါင်းထားပြီး
-/// [otherPartyName] getter ကနေတစ်ဆင့် card ပေါ်မှာ "Paid From"/"Paid To"
-/// ဘယ်ဟာပြရမလဲဆိုတာ ခွဲသုံးနိုင်အောင် လုပ်ထားပါတယ်။
 class SettlementRequestModel {
   final String id;
   final String group;
   final String expense;
-  final String? claimedBy; // role=payer မှာသာပါမယ်
-  final String? paidTo; // role=claimant မှာသာပါမယ်
+  final String? claimedBy; 
+  final String? paidTo; 
   final int amount;
-  final String status; // pending | confirmed | rejected
+  final String status; 
   final DateTime? createdAt;
 
   SettlementRequestModel({
@@ -32,8 +19,6 @@ class SettlementRequestModel {
     this.createdAt,
   });
 
-  /// "Received Requests" card မှာ "Paid From : <name>", "Sent Requests"
-  /// card မှာ "Paid To : <name>" လို့ ပြဖို့ သုံးမယ့် name
   String get otherPartyName => claimedBy ?? paidTo ?? '';
 
   bool get isPending => status.toLowerCase() == 'pending';
@@ -75,8 +60,6 @@ class SettlementRequestModel {
   }
 }
 
-/// Debt Requests screen ရဲ့ navigation bar (Received / Sent) နှင့်
-/// backend ရဲ့ `role` query param ကို တွဲသုံးဖို့
 enum SettlementRequestRole { payer, claimant }
 
 extension SettlementRequestRoleX on SettlementRequestRole {
@@ -84,7 +67,6 @@ extension SettlementRequestRoleX on SettlementRequestRole {
       this == SettlementRequestRole.payer ? 'payer' : 'claimant';
 }
 
-/// Filter bottom sheet က status ရွေးစရာ ၃မျိုး
 enum SettlementRequestStatus { pending, confirmed, rejected }
 
 extension SettlementRequestStatusX on SettlementRequestStatus {

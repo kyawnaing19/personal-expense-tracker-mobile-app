@@ -84,7 +84,7 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
         } catch (e, stacktrace) {
           developer.log('⚠️ Analytics Parsing Error: $e',
               name: 'AnalyticsBloc', error: e, stackTrace: stacktrace);
-          emit(AnalyticsError("ဒေတာဆွဲယူရာတွင် အမှားအယွင်းရှိနေပါသည်"));
+          emit(AnalyticsError("It is error in loading data. Please try again."));
         }
       },
       transformer: restartable(), 

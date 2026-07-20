@@ -128,37 +128,75 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               );
             }
           },
-          builder: (context, state) {
+          // builder: (context, state) {
+          //   final isBusy = state is GroupLoading || _loadingMe;
+          //   return Padding(
+          //     padding: const EdgeInsets.all(20),
+          //     child: SingleChildScrollView(
+          //       child: Column(
+          //         crossAxisAlignment: CrossAxisAlignment.start,
+          //         children: [
+          //           Row(
+          //             children: [
+          //               _RoundIconButton(
+          //                 icon: Icons.arrow_back_ios_outlined,
+          //                 onTap: () => Navigator.pop(context),
+          //               ),
+          //               const Expanded(
+          //                 child: Center(
+          //                   child: Text(
+          //                     'Settings',
+          //                     style: TextStyle(
+          //                         fontSize: 18, fontWeight: FontWeight.bold),
+          //                   ),
+          //                 ),
+          //               ),
+          //               const SizedBox(width: 40),
+          //             ],
+          //           ),
+          //           const SizedBox(height: 20),
+
+          //           Container(
+          //             width: double.infinity,
+          //             padding: const EdgeInsets.all(16),
+            builder: (context, state) {
             final isBusy = state is GroupLoading || _loadingMe;
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        _RoundIconButton(
-                          icon: Icons.arrow_back,
-                          onTap: () => Navigator.pop(context),
-                        ),
-                        const Expanded(
-                          child: Center(
-                            child: Text(
-                              'Settings',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
+            return Column(
+              children: [
+                // ── Static Nav Bar ── (scroll လုပ်လည်း မရွှေ့တော့ပါ)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Row(
+                    children: [
+                      _RoundIconButton(
+                        icon: Icons.arrow_back_ios_outlined,
+                        onTap: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Settings',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 40),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+                      ),
+                      const SizedBox(width: 40),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                // ── Scrollable Content ──
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -302,14 +340,16 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: const Text('Delete Group',
+child: const Text('Delete Group',
                               style: TextStyle(color: Colors.white)),
                         ),
                       ),
                     ],
                   ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             );
           },
         ),
@@ -528,7 +568,7 @@ class _EditGroupScreenState extends State<EditGroupScreen> {
                   Row(
                     children: [
                       _RoundIconButton(
-                        icon: Icons.arrow_back,
+                        icon: Icons.arrow_back_ios_outlined,
                         onTap: () => Navigator.pop(context),
                       ),
                       const Expanded(

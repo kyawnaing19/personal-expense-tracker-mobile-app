@@ -55,15 +55,11 @@ class SettlementRequestBloc
     await _fetch(event.role, _currentStatusFilter(), emit);
   }
 
-  // "Received Requests" <-> "Sent Requests" ကိုပြောင်းလိုက်ရင် status filter
-  // ကို ဆက်ထားပြီး role အသစ်အတွက် ပြန် fetch လုပ်မယ်
   Future<void> _onChangeRole(ChangeSettlementRequestRole event,
       Emitter<SettlementRequestStateBase> emit) async {
     await _fetch(event.role, _currentStatusFilter(), emit);
   }
 
-  // Filter dialog ထဲက status ရွေးလိုက်ရင် (or Clear Filter -> null) role
-  // အလက်ရှိအတွက်ပဲ ပြန် fetch လုပ်မယ်
   Future<void> _onApplyStatusFilter(
       ApplyStatusFilter event, Emitter<SettlementRequestStateBase> emit) async {
     final current = state;
@@ -84,7 +80,6 @@ class SettlementRequestBloc
 
     try {
       await _repository.confirmRequest(event.requestId);
-      // Server ဆီကို ပြန်ဆက်ပြီး status အသစ်အတိအကျ ရယူဖို့ list ကို refresh လုပ်မယ်
       final requests = await _repository.getSettlementRequests(
         role: current.role,
         status: current.statusFilter,

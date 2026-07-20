@@ -25,14 +25,18 @@ class TransactionDetailScreen extends StatefulWidget {
 
 class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   bool _isEditing = false;
-  
-  // Controller များ
+
   late TextEditingController _amountController;
   late TextEditingController _noteController;
 
-  // Local State Variables
   late double _currentAmount;
   late String _currentNote;
+
+  static const Color _bgColor = Color(0xFFE6DEF7); 
+  static const Color _primaryPurple = Color(0xFF7C3AED); 
+
+  static const double _labelColWidth = 80;
+  static const double _pencilColWidth = 22;
 
   @override
   void initState() {
@@ -58,221 +62,258 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: Container(
-          color: const Color(0xFFE8DEF8), // AppBar Background
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          alignment: Alignment.bottomCenter,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: _bgColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Arrow Button
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+                    ),
                   ),
-                  child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+                  Expanded(
+                    child: Text(
+                      "Record Details",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 40, height: 40),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Table(
+                          columnWidths: const {
+                            0: FixedColumnWidth(_labelColWidth),
+                            1: FixedColumnWidth(12),
+                            2: FlexColumnWidth(),
+                            3: FixedColumnWidth(_pencilColWidth),
+                          },
+                          defaultVerticalAlignment: TableCellVerticalAlignment.top,
+                          children: [
+                            TableRow(
+                              children: [
+                                TableCell(
+                                  verticalAlignment: TableCellVerticalAlignment.middle,
+                                  child: CircleAvatar(
+                                    radius: 22,
+                                    backgroundColor: widget.categoryColor,
+                                    child: Icon(widget.categoryIcon, color: Colors.white, size: 22),
+                                  ),
+                                ),
+                                const SizedBox(),
+                                TableCell(
+                                  verticalAlignment: TableCellVerticalAlignment.middle,
+                                  child: Text(
+                                    widget.categoryName,
+                                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                                  ),
+                                ),
+                                TableCell(
+                                  verticalAlignment: TableCellVerticalAlignment.middle,
+                                  child: _isEditing
+                                      ? const Icon(Icons.edit_outlined, size: 18, color: Colors.black38)
+                                      : const SizedBox(),
+                                ),
+                              ],
+                            ),
+                            _spacerRow(28),
+                            _buildTableRow(
+                              "Type",
+                              Text(isExpense ? "Expense" : "Income",
+                                  style: const TextStyle(fontSize: 16, color: Colors.black38)),
+                            ),
+                            _spacerRow(22),
+                            _buildTableRow(
+                              "Amount",
+                              _isEditing
+                                  ? TextField(
+                                      controller: _amountController,
+                                      keyboardType: TextInputType.number,
+                                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    )
+                                  : Text(formatter.format(_currentAmount),
+                                      style: const TextStyle(fontSize: 16, color: Colors.black)),
+                              showEditIcon: _isEditing,
+                            ),
+                            _spacerRow(22),
+                            _buildTableRow(
+                              "Date",
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(DateFormat('MMM d, yyyy').format(widget.transaction.createdAt.toLocal()),
+                                      style: const TextStyle(fontSize: 16, color: Colors.black38)),
+                                  Text("(${DateFormat('HH:mm:ss').format(widget.transaction.createdAt.toLocal())})",
+                                      style: const TextStyle(fontSize: 13, color: Colors.black38)),
+                                ],
+                              ),
+                            ),
+                            _spacerRow(22),
+                            _buildTableRow(
+                              "Note",
+                              _isEditing
+                                  ? TextField(
+                                      controller: _noteController,
+                                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    )
+                                  : Text(_currentNote.isEmpty ? "No note" : _currentNote,
+                                      style: const TextStyle(fontSize: 16, color: Colors.black)),
+                              showEditIcon: _isEditing,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 28),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: _isEditing
+                              ? [
+                                  _buildSecondaryButton(
+                                    label: "Cancel",
+                                    onPressed: () {
+                                      setState(() {
+                                        _isEditing = false;
+                                        _amountController.text = _currentAmount.toInt().toString();
+                                        _noteController.text = _currentNote == "No note" ? "" : _currentNote;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildPrimaryButton(
+                                    label: "Done",
+                                    onPressed: () {
+                                      final updatedAmount =
+                                          double.tryParse(_amountController.text) ?? _currentAmount;
+                                      final updatedNote = _noteController.text.trim().isEmpty
+                                          ? "No note"
+                                          : _noteController.text.trim();
+
+                                      BlocProvider.of<TransactionBloc>(context).add(
+                                        UpdateTransactionRequested(
+                                          id: widget.transaction.id,
+                                          amount: updatedAmount,
+                                          note: updatedNote,
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ]
+                              : [
+                                  _buildSecondaryButton(
+                                    label: "Delete",
+                                    onPressed: () {
+                                      BlocProvider.of<TransactionBloc>(context)
+                                          .add(DeleteTransactionRequested(widget.transaction.id));
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildPrimaryButton(
+                                    label: "Edit",
+                                    onPressed: () => setState(() => _isEditing = true),
+                                  ),
+                                ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              Text(
-                _isEditing ? "Edit Transaction Details" : "Transaction Details",
-                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const SizedBox(width: 36, height: 36),
             ],
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(width: 40), 
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: widget.categoryColor,
-                  child: Icon(widget.categoryIcon, color: Colors.white, size: 26),
-                ),
-                const SizedBox(width: 40), 
-                Expanded(
-                  child: Text(
-                    widget.categoryName,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            _buildDetailRow("Type", Text(isExpense ? "Expense" : "Income", style: const TextStyle(fontSize: 16, color: Colors.black38))),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDetailRow(
-                    "Amount",
-                    _isEditing
-                        ? TextField(
-                            controller: _amountController,
-                            keyboardType: TextInputType.number,
-                            style: const TextStyle(fontSize: 16, color: Colors.black),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          )
-                        : Text(formatter.format(_currentAmount), style: const TextStyle(fontSize: 16, color: Colors.black)),
-                  ),
-                ),
-                if (_isEditing)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 16.0),
-                    child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            _buildDetailRow(
-              "Date",
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(DateFormat('MMM d, yyyy').format(widget.transaction.createdAt.toLocal()), style: const TextStyle(fontSize: 16, color: Colors.black38)),
-                  Text("(${DateFormat('HH:mm:ss').format(widget.transaction.createdAt.toLocal())})", style: const TextStyle(fontSize: 13, color: Colors.black38)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDetailRow(
-                    "Note",
-                    _isEditing
-                        ? TextField(
-                            controller: _noteController,
-                            style: const TextStyle(fontSize: 16, color: Colors.black),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          )
-                        : Text(_currentNote.isEmpty ? "No note" : _currentNote, style: const TextStyle(fontSize: 16, color: Colors.black)),
-                  ),
-                ),
-                if (_isEditing)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 16.0),
-                    child: Icon(Icons.edit_outlined, size: 18, color: Colors.black38),
-                  ),
-              ],
-            ),
-            
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: _isEditing
-                  ? [
-                      _buildBottomButton(
-                        label: "Cancel",
-                        onPressed: () {
-                          setState(() {
-                            _isEditing = false;
-                            _amountController.text = _currentAmount.toInt().toString();
-                            _noteController.text = _currentNote == "No note" ? "" : _currentNote;
-                          });
-                        },
-                      ),
-                       _buildBottomButton(
-  label: "Done",
-  onPressed: () {
-    final updatedAmount = double.tryParse(_amountController.text) ?? _currentAmount;
-    final updatedNote = _noteController.text.trim().isEmpty ? "No note" : _noteController.text.trim();
-
-    BlocProvider.of<TransactionBloc>(context).add(
-      UpdateTransactionRequested(
-        id: widget.transaction.id,
-        amount: updatedAmount,
-        note: updatedNote,
-      ),
-    );
-    Navigator.pop(context); 
-  },
-),
-                    ]
-                  : [
-                      _buildBottomButton(
-                        label: "Edit",
-                        onPressed: () => setState(() => _isEditing = true),
-                      ),
-                     _buildBottomButton(
-  label: "Delete",
-  onPressed: () {
-    BlocProvider.of<TransactionBloc>(context).add(
-      DeleteTransactionRequested(widget.transaction.id)
-    );
-    Navigator.pop(context); 
-  },
-),
-                    ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
     );
   }
-  Widget _buildDetailRow(String title, Widget valueWidget) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+
+  TableRow _buildTableRow(String title, Widget valueWidget, {bool showEditIcon = false}) {
+    return TableRow(
       children: [
-        const SizedBox(width: 40), 
-        SizedBox(
-          width: 92, 
-          child: Text(
-            title,
-            style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.normal),
-          ),
+        Text(
+          title,
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.normal),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
-            child: valueWidget,
-          ),
-        ),
+        const SizedBox(),
+        valueWidget,
+        showEditIcon
+            ? const Icon(Icons.edit_outlined, size: 18, color: Colors.black38)
+            : const SizedBox(),
       ],
     );
   }
 
-  Widget _buildBottomButton({required String label, VoidCallback? onPressed}) {
-    return SizedBox(
-      width: 130,
-      height: 42,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF8B5CF6),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 0,
-        ),
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-        ),
+  TableRow _spacerRow(double height) {
+    return TableRow(
+      children: [SizedBox(height: height), SizedBox(height: height), SizedBox(height: height), SizedBox(height: height)],
+    );
+  }
+
+  Widget _buildPrimaryButton({required String label, VoidCallback? onPressed}) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _primaryPurple,
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton({required String label, VoidCallback? onPressed}) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: _bgColor.withOpacity(0.4),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        side: BorderSide(color: _primaryPurple.withOpacity(0.5), width: 1.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: TextStyle(color: _primaryPurple, fontSize: 15, fontWeight: FontWeight.w500),
       ),
     );
   }

@@ -8,24 +8,33 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
 class AnalyticalRecordPage extends StatefulWidget {
-  const AnalyticalRecordPage({Key? key}) : super(key: key);
+ final VoidCallback? onBackToHome;
+  const AnalyticalRecordPage({Key? key, this.onBackToHome}) : super(key: key);
+
 
   @override
   State<AnalyticalRecordPage> createState() => AnalyticalRecordPageState();
 }
 
-class AnalyticalRecordPageState extends State<AnalyticalRecordPage> with SingleTickerProviderStateMixin {
-  static String _selectedType = 'expense';
-  static String _selectedPeriod = 'week'; 
-  static String _subPeriod = 'this';
+class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
+   String _selectedType = 'expense';
+   String _selectedPeriod = 'month'; 
+   String _subPeriod = 'this';
 
-late TabController _periodTabController;
-final List<String> _periodOptions = const ['week', 'month', 'year'];
+  static const Color primaryPurple = Color(0xFF7F3DFF);
+  static const Color expenseBarColor = Color(0xFFEF4444); 
+  static const Color incomeBarColor = Color(0xFF22C55E); 
+
+  final List<Map<String, String>> _periodOptions = const [
+    {'value': 'week', 'label': 'Week'},
+    {'value': 'month', 'label': 'Month'},
+    {'value': 'year', 'label': 'Year'},
+  ];
 
   DateTime? _startDate;
   DateTime? _endDate;
 
-  String _previousPeriod = 'week';
+  String _previousPeriod = 'month';
   String _previousSubPeriod = 'this';
 
   void _showCustomDateRangePicker() async {
@@ -138,22 +147,6 @@ final List<String> _periodOptions = const ['week', 'month', 'year'];
   @override
   void initState() {
     super.initState();
-    _periodTabController = TabController(
-    length: 3,
-    vsync: this,
-    initialIndex: _periodOptions.indexOf(_selectedPeriod).clamp(0, 2),
-  );
-  _periodTabController.addListener(() {
-    if (!_periodTabController.indexIsChanging) {
-      final newPeriod = _periodOptions[_periodTabController.index];
-      if (newPeriod != _selectedPeriod) {
-        setState(() {
-          _selectedPeriod = newPeriod;
-          _loadAnalyticsData();
-        });
-      }
-    }
-  });
     _loadAnalyticsData();
 
     _scrollController.addListener(() {
@@ -170,9 +163,16 @@ final List<String> _periodOptions = const ['week', 'month', 'year'];
 
   @override
   void dispose() {
-    _periodTabController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _applyPeriodFilter(String period) {
+    if (period == _selectedPeriod) return;
+    setState(() {
+      _selectedPeriod = period;
+      _loadAnalyticsData();
+    });
   }
 
   void _loadAnalyticsData() {
@@ -246,6 +246,21 @@ final List<String> _periodOptions = const ['week', 'month', 'year'];
                           }
                         }
                       });
+
+                      final bool isYearSelected = _selectedPeriod == 'year';
+
+                      if (isYearSelected) {
+                        return Column(
+                          children: [
+                            _buildAnalyticsCard(state.response, currencyFormatter),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: _buildAnnualBarChartCard(state.response, currencyFormatter),
+                            ),
+                          ],
+                        );
+                      }
+
                       return _buildAnalyticsCard(state.response, currencyFormatter);
                     } else if (state is AnalyticsEmpty) {
                       return _buildEmptyState();
@@ -266,38 +281,52 @@ final List<String> _periodOptions = const ['week', 'month', 'year'];
       ),
     );
   }
+
 Widget _buildAppBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black),
-                onPressed: () {
-                  if (_selectedPeriod == 'custom') {
-                    setState(() {
-                      _selectedPeriod = _previousPeriod;
-                      _subPeriod = _previousSubPeriod;
-                    });
-                    _periodTabController.index = _periodOptions.indexOf(_previousPeriod);
-                    _loadAnalyticsData();
-                  } else {
-                    Navigator.maybePop(context);
-                  }
-                })),
+      GestureDetector(
+  onTap: () {
+    if (_selectedPeriod == 'custom') {
+      setState(() {
+        _selectedPeriod = _previousPeriod;
+        _subPeriod = _previousSubPeriod;
+      });
+      _loadAnalyticsData();
+    } else {
+      if (widget.onBackToHome != null) {
+        widget.onBackToHome!();
+      } else {
+        Navigator.maybePop(context);
+      }
+    }
+  },
+  child: Container(
+    width: 40,
+    height: 40,
+    alignment: Alignment.center,
+    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+  ),
+),
 
         _buildTypeDropdown(),
 
         Container(
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            child: IconButton(
-                icon: const Icon(Icons.calendar_month_outlined, size: 22, color: Colors.black),
-                onPressed: () async {
-                  _showCustomDateRangePicker();
-                }))
+          width: 39,
+          height: 39,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.black),
+            onPressed: () async {
+              _showCustomDateRangePicker();
+            },
+          ),
+        ),
       ],
     );
   }
@@ -379,32 +408,45 @@ Widget _buildAppBar() {
       ),
     );
   }
-
-Widget _buildPeriodToggle() {
-  return Container(
-    height: 45,
-    decoration: BoxDecoration(
-      color: Colors.white, 
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: TabBar(
-      controller: _periodTabController,
-      labelColor: Colors.white, 
-      unselectedLabelColor: Colors.black54, 
-      dividerColor: Colors.transparent,
-      indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(
+  Widget _buildPeriodToggle() {
+    return Container(
+      height: 45,
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        color: const Color(0xFF7F3DFF), 
       ),
-      tabs: const [
-        Tab(text: "Week"),
-        Tab(text: "Month"),
-        Tab(text: "Year"),
-      ],
-    ),
-  );
-}
+      child: Row(
+        children: _periodOptions.map((option) {
+          final String value = option['value']!;
+          final String label = option['label']!;
+          final bool isSelected = _selectedPeriod == value;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _applyPeriodFilter(value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected ? primaryPurple : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.black54,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
   Widget _buildSubPeriodSelector() {
     String thisText =
@@ -453,138 +495,146 @@ Widget _buildPeriodToggle() {
   }
 
   Widget _buildAnalyticsCard(AnalyticsResponse response, NumberFormat formatter) {
-    bool isYearSelected = _selectedPeriod == 'year';
-
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
         width: double.infinity,
-        height: isYearSelected ? 300 : 180,
+        height: 180,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
         ),
-        child: Column(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: SizedBox(
-                    height: 142,
-                    child: Stack(
-                      alignment: Alignment.center,
+            Expanded(
+              flex: 4,
+              child: SizedBox(
+                height: 142,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      key: ValueKey('${_selectedType}_${_selectedPeriod}_${_subPeriod}'),
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 42,
+                        startDegreeOffset: -90,
+                        sections: response.breakdown.map((data) {
+                          return PieChartSectionData(
+                            color: data.color,
+                            value: data.percentage,
+                            title: '',
+                            radius: 10,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        PieChart(
-                          key: ValueKey('${_selectedType}_${_selectedPeriod}_${_subPeriod}'),
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 42,
-                            startDegreeOffset: -90,
-                            sections: response.breakdown.map((data) {
-                              return PieChartSectionData(
-                                color: data.color,
-                                value: data.percentage,
-                                title: '',
-                                radius: 10,
-                              );
-                            }).toList(),
-                          ),
+                        Text(
+                          _selectedType == 'expense' ? 'Expense' : 'Income',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
                         ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _selectedType == 'expense' ? 'Expense' : 'Income',
-                              style: TextStyle(
-                                  fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              formatter.format(response.overallTotal),
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                            ),
-                          ],
+                        const SizedBox(height: 2),
+                        Text(
+                          formatter.format(response.overallTotal),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 5,
-                  child: Stack(
-                    children: [
-                      SizedBox(
-                        height: 142,
-                        child: RawScrollbar(
-                          thumbColor: Colors.grey[300],
-                          radius: const Radius.circular(4),
-                          thickness: 3,
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            physics: const BouncingScrollPhysics(),
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 6.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children:
-                                    response.breakdown.map((data) => _buildLegendItem(data)).toList(),
-                              ),
-                            ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 5,
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 142,
+                    child: RawScrollbar(
+                      thumbColor: Colors.grey[300],
+                      radius: const Radius.circular(4),
+                      thickness: 3,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        physics: const BouncingScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 6.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children:
+                                response.breakdown.map((data) => _buildLegendItem(data)).toList(),
                           ),
                         ),
                       ),
-                      if (_showScrollArrow)
-                        Positioned(
-                          bottom: 0, left: 0, right: 0,
-                          child: Container(
-                            height: 22,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.white.withOpacity(0.0), Colors.white.withOpacity(0.9)],
-                              ),
-                            ),
-                            child: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF7C3AED)),
+                    ),
+                  ),
+                  if (_showScrollArrow)
+                    Positioned(
+                      bottom: 0, left: 0, right: 0,
+                      child: Container(
+                        height: 22,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.white.withOpacity(0.0), Colors.white.withOpacity(0.9)],
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (isYearSelected) ...[
-              const Divider(height: 20, thickness: 0.5, color: Color(0xFFE5E7EB)),
-              Expanded(
-                child: _buildAnnualBarChart(response.monthlyData, formatter), 
+                        child: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF7C3AED)),
+                      ),
+                    ),
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAnnualBarChart(List<MonthlyBarData> monthlyData, NumberFormat formatter) {
-    double maxAmount = 1000;
+  Widget _buildAnnualBarChartCard(AnalyticsResponse response, NumberFormat formatter) {
+    final Color barColor = _selectedType == 'expense' ? expenseBarColor : incomeBarColor;
+
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: _buildAnnualBarChart(response.monthlyData, formatter, barColor),
+    );
+  }
+
+  Widget _buildAnnualBarChart(
+      List<MonthlyBarData> monthlyData, NumberFormat formatter, Color barColor) {
+        
+    double maxAmount = 0;
     for (var d in monthlyData) {
       if (d.amount > maxAmount) maxAmount = d.amount;
     }
+    if (maxAmount <= 0) maxAmount = 1000;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8.0, bottom: 6.0),
+          padding: const EdgeInsets.only(left: 8.0, bottom: 10.0),
           child: Text(
             _selectedType == 'expense' ? 'Annual Expenses' : 'Annual Income',
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -592,7 +642,7 @@ Widget _buildPeriodToggle() {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 18.0, bottom: 2.0, left: 8.0, right: 8.0),
+            padding: const EdgeInsets.only(top: 18.0, bottom: 8.0, left: 8.0, right: 8.0),
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
@@ -623,14 +673,17 @@ Widget _buildPeriodToggle() {
                       getTitlesWidget: (double value, TitleMeta meta) {
                         int idx = value.toInt();
                         if (idx >= 0 && idx < monthlyData.length) {
-                          return Text(
-                            monthlyData[idx].monthName,
-                            style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold, fontSize: 9),
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              monthlyData[idx].monthName,
+                              style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold, fontSize: 9),
+                            ),
                           );
                         }
                         return const SizedBox.shrink();
                       },
-                      reservedSize: 16,
+                      reservedSize: 24,
                     ),
                   ),
                   leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -646,8 +699,8 @@ Widget _buildPeriodToggle() {
                     barRods: [
                       BarChartRodData(
                         toY: monthlyData[index].amount,
-                        color: const Color(0xFF7C3AED),
-                        width: 8,
+                        color: barColor,
+                        width: 10,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(3),
                           topRight: Radius.circular(3),
@@ -695,6 +748,7 @@ Widget _buildPeriodToggle() {
       width: double.infinity,
       height: 180,
       padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

@@ -19,8 +19,6 @@ String _formatNumber(int n) {
   return (isNeg ? '-' : '') + buffer.toString();
 }
 
-// Member's "ရရမဲ့ (To Receive)" / "ပေးရမဲ့ (To Pay)" ၂ခုကြားကို
-// navigation button ပုံစံ toggle လုပ်ဖို့
 enum _BalanceTab { toReceive, toPay }
 
 class MemberBalanceDetailScreen extends StatefulWidget {
@@ -63,7 +61,7 @@ class _MemberBalanceDetailScreenState
               Row(
                 children: [
                   _RoundIconButton(
-                    icon: Icons.arrow_back_ios_new,
+                    icon: Icons.arrow_back_ios_outlined,
                     onTap: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -172,7 +170,7 @@ class _TotalCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
@@ -216,8 +214,6 @@ class _TotalCard extends StatelessWidget {
   }
 }
 
-// Member က "သူက သူများဆီက ရရမယ့်ဟာ" / "သူက သူများကို ပေးရမယ့်ဟာ" ၂ခုကြား
-// navigate လုပ်ဖို့ segmented toggle
 class _TabToggle extends StatelessWidget {
   final _BalanceTab tab;
   final ValueChanged<_BalanceTab> onChanged;
@@ -226,10 +222,10 @@ class _TabToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+     // padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
@@ -269,7 +265,7 @@ class _TabButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: selected ? kGroupPurple : Colors.transparent,
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -285,7 +281,6 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-// "To Receive" tab အောက်ရဲ့ expense card (Image 2)
 class _ReceivableCard extends StatelessWidget {
   final BalanceSplitItem item;
   const _ReceivableCard({required this.item});
@@ -352,7 +347,6 @@ class _ReceivableCard extends StatelessWidget {
   }
 }
 
-// "To Pay" tab အောက်ရဲ့ expense card (Image 3)
 class _PayableCard extends StatelessWidget {
   final BalanceSplitItem item;
   const _PayableCard({required this.item});
