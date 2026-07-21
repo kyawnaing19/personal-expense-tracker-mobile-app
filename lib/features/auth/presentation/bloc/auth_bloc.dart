@@ -73,3 +73,4 @@ Future<void> _onCheckAuthStatus(
   }
 }
 }
+

@@ -76,7 +76,7 @@ Widget _buildAppBar(BuildContext context) {
           onTap: () => Navigator.of(context).maybePop(),
           child: const Icon(
             Icons.arrow_back_ios_outlined,
-            size: 16,
+            size: 20,
             color: Colors.black87,
           ),
         ),
@@ -614,7 +614,7 @@ class _RequestCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: isProcessing ? null : onConfirm,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: kDebtPurple,
+                        backgroundColor: const Color.fromARGB(255, 124, 71, 202),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 44),
                         padding: const EdgeInsets.symmetric(vertical: 12),

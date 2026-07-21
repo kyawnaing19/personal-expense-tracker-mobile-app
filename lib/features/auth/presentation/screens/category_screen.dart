@@ -78,9 +78,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
-
-    BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
-
     _runIconMigration();
   }
 
@@ -90,10 +87,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     try {
       await _categoryRepository.migrateLegacyCategoryIcons();
-      if (!mounted) return;
-      BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
     } catch (e) {
       debugPrint('⚠️ Icon migration failed: $e');
+    } finally {
+      if (!mounted) return;
+      BlocProvider.of<CategoryBloc>(context).add(LoadCategories());
     }
   }
 
@@ -428,25 +426,23 @@ class _CategoryScreenState extends State<CategoryScreen> {
         children: [
           GestureDetector(
             onTap: () {
-            if (_currentState == CategoryState.view) {
-      if (widget.onBackToHome != null) {
-        widget.onBackToHome!();
-      } else {
-
-        Navigator.pop(context);
-      }
-    } else {
-
-      _updateState(CategoryState.view);
-    }
-  },
+              if (_currentState == CategoryState.view) {
+                if (widget.onBackToHome != null) {
+                  widget.onBackToHome!();
+                } else {
+                  Navigator.pop(context);
+                }
+              } else {
+                _updateState(CategoryState.view);
+              }
+            },
             child: Container(
-    width: 40,
-    height: 40,
-    alignment: Alignment.center,
-    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
-  ),
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
+            ),
           ),
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
           if (_currentState == CategoryState.calculator)
@@ -473,67 +469,103 @@ class _CategoryScreenState extends State<CategoryScreen> {
         }
       },
       builder: (context, state) {
-        if (state is CategoryLoading) return const Center(child: CircularProgressIndicator(color: Color(0xFF7F3DFF)));
+        if (state is CategoryLoading) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF7F3DFF)));
+        }
+        
         List<CategoryItem> currentCategories = [];
-        if (state is CategoryLoaded) currentCategories = state.categories.where((c) => c.type == type).toList();
+        if (state is CategoryLoaded) {
+          currentCategories = state.categories.where((c) => c.type == type).toList();
+        }
+
         return Stack(
-  children: [
-    currentCategories.isEmpty
-        ? const SizedBox.shrink()
-        : ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90), 
-            itemCount: currentCategories.length,
-            itemBuilder: (context, index) {
-              final item = currentCategories[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-                child: Material(
-                  color: const Color(0xFFF9FAFB),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    onTap: () {
-                      setState(() { _selectedCategory = item; _amount = "0"; _expression = ""; _shouldResetDisplay = false; });
-                      _updateState(CategoryState.calculator);
-                    },
-                    leading: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(shape: BoxShape.circle, border: _selectedCategory == item ? Border.all(color: Colors.black, width: 2) : null),
-                      child: CircleAvatar(radius: 20, backgroundColor: item.color, child: Icon(item.icon, color: Colors.white, size: 20)),
+          children: [
+            currentCategories.isEmpty
+                ? Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24.0, left: 16.0, right: 16.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.category_outlined, size: 48, color: Color(0xFF9CA3AF)),
+                            SizedBox(height: 16),
+                            Text(
+                              "No categories yet.\nTap + to add a new category.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF9CA3AF),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15)),
-                    trailing: IconButton(icon: const Icon(Icons.more_vert, size: 22, color: Color(0xFF9CA3AF)), onPressed: () => _showActionBottomSheet(item)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 90), 
+                    itemCount: currentCategories.length,
+                    itemBuilder: (context, index) {
+                      final item = currentCategories[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+                        child: Material(
+                          color: const Color(0xFFF9FAFB),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            onTap: () {
+                              setState(() { _selectedCategory = item; _amount = "0"; _expression = ""; _shouldResetDisplay = false; });
+                              _updateState(CategoryState.calculator);
+                            },
+                            leading: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(shape: BoxShape.circle, border: _selectedCategory == item ? Border.all(color: Colors.black, width: 2) : null),
+                              child: CircleAvatar(radius: 20, backgroundColor: item.color, child: Icon(item.icon, color: Colors.white, size: 20)),
+                            ),
+                            title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15)),
+                            trailing: IconButton(icon: const Icon(Icons.more_vert, size: 22, color: Color(0xFF9CA3AF)), onPressed: () => _showActionBottomSheet(item)),
+                          ),
+                        ),
+                      );
+                    },
                   ),
+            
+            Positioned(
+              right: 20,
+              bottom: 24,
+              child: GestureDetector(
+                onTap: () {
+                  _nameController.clear();
+                  _tempColor = const Color(0xFFF59E0B);
+                  _tempIcon = Icons.restaurant;
+                  _tempType = type == 'expense' ? "Expense" : "Income";
+                  _updateState(CategoryState.add);
+                },
+                child: Container(
+                  width: 56,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7F3DFF),
+                    shape: BoxShape.circle,
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 28),
                 ),
-              );
-            },
-          ),
-    Positioned(
-      right: 16,
-      bottom: 16,
-      child: GestureDetector(
-        onTap: () {
-          _nameController.clear();
-          _tempColor = const Color(0xFFF59E0B);
-          _tempIcon = Icons.restaurant;
-          _tempType = type == 'expense' ? "Expense" : "Income";
-          _updateState(CategoryState.add);
-        },
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: const BoxDecoration(
-            color: Color(0xFF7F3DFF),
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
-          ),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-        ),
-      ),
-    ),
-  ],
-);
+              ),
+            ),
+          ],
+        );
       },
     );
   }

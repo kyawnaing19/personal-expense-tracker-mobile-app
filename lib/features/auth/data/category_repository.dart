@@ -1,5 +1,3 @@
-
-
 import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/category_icons.dart';
@@ -251,3 +249,4 @@ class CategoryRepository {
     developer.log('✅ [MIGRATION] Completed. Fixed $fixedCount categor${fixedCount == 1 ? 'y' : 'ies'}.', name: 'CategoryRepository');
   }
 }
+

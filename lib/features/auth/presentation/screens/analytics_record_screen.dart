@@ -307,7 +307,7 @@ Widget _buildAppBar() {
     height: 40,
     alignment: Alignment.center,
     decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+    child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
   ),
 ),
 

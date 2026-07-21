@@ -147,7 +147,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.black),
+              child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
             ),
           ),
         ),

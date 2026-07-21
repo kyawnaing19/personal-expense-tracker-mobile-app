@@ -306,7 +306,7 @@ Widget build(BuildContext context) {
       onTap: () => Navigator.pop(context),
       child: const Padding(
         padding: EdgeInsets.all(8),
-        child: Icon(Icons.arrow_back_ios_outlined, color: Colors.black87, size: 16),
+        child: Icon(Icons.arrow_back_ios_outlined, color: Colors.black87, size: 20),
       ),
     ),
   );

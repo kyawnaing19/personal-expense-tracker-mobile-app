@@ -644,13 +644,12 @@ class _RecordHistoryScreenState extends State<RecordHistoryScreen> {
               Navigator.pop(context);
             }
           },
-          //child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape:BoxShape.circle), child: const Icon(Icons.arrow_back_ios_outlined, size: 16, color: Colors.black))
-         child: Container(
+          child: Container(
     width: 40,
     height: 40,
     alignment: Alignment.center,
     decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-    child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+    child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
   ),
         ),
         const Text("Transaction History", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),

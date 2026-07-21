@@ -80,7 +80,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black),
+                      child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
                     ),
                   ),
                   Expanded(

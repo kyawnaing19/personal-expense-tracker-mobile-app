@@ -122,5 +122,5 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon/app_icon.jpg"
-  min_sdk_android: 21 # အနည်းဆုံး လိုအပ်တဲ့ Android version
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21 

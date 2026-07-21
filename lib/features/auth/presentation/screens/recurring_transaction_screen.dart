@@ -172,9 +172,16 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
                       height: 46,
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context, false),
-                        style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                        child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      //   style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+                      //   child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      // ),
+style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: primaryPurple, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
+                        child: Text('No', style: TextStyle(color: primaryPurple, fontWeight: FontWeight.bold)),
                       ),
+                      
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -291,7 +298,7 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.arrow_back_ios_outlined, size: 16, color: Colors.black)),
+          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black)),
         ),
         const Flexible(
           child: Text('Recurring Transactions', textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
@@ -314,7 +321,7 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
                   child: GestureDetector(
                     onTap: () => _applyTypeFilter(tab),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
                       decoration: BoxDecoration(color: isSelected ? primaryPurple : Colors.transparent, borderRadius: BorderRadius.circular(8)),
                       child: Text(tab, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? Colors.white : Colors.grey)),
                     ),
@@ -324,7 +331,7 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 7),
         GestureDetector(
           onTap: _showCategoryFilterSheet,
           child: Container(

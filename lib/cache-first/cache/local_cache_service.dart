@@ -2,11 +2,6 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// SharedPreferences ပေါ်အခြေခံထားတဲ့ Generic Local Cache Layer။
-/// Repository/Bloc ဘယ်ခု ဖြစ်ဖြစ် (Categories, Transactions, Budgets, Groups...)
-/// ဒီ Service တစ်ခုတည်းကနေ cache save/read/clear လုပ်နိုင်အောင် ရေးထားသည်။
-///
-/// Key Convention: "cache_<feature_name>"  (e.g. cache_categories, cache_transactions)
 class LocalCacheService {
   LocalCacheService._internal();
   static final LocalCacheService instance = LocalCacheService._internal();

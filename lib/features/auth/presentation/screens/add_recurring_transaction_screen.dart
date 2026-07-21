@@ -405,7 +405,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle,), child: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black)),
+          child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle,), child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black)),
         ),
         const SizedBox(width: 45),
         Text(_isEditing ? 'Edit Recurring Transaction' : 'Add Recurring Transactions', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),

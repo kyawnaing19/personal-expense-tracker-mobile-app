@@ -32,7 +32,7 @@ class SetNewBudgetScreen extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_ios_outlined, size: 18, color: Colors.black),
+              child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
             ),
           ),
         ),

@@ -725,14 +725,14 @@ class _DeleteGroupDialog extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
+                  // Text(
+                  //   'Warning: This action cannot be undone',
+                  //   style: TextStyle(
+                  //       color: Colors.red, fontWeight: FontWeight.w600),
+                  // ),
+               //   SizedBox(height: 8),
                   Text(
-                    'Warning: This action cannot be undone',
-                    style: TextStyle(
-                        color: Colors.red, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Deleting this group will permanently remove all expenses, balances and members data associated with it.',
+                    'Warning:Deleting this group will permanently remove all expenses, balances and members data associated with it.',
                     style: TextStyle(color: Colors.red, fontSize: 12.5),
                   ),
                 ],
@@ -742,18 +742,39 @@ class _DeleteGroupDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: onCancel,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kGroupPurple,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                  ),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: Colors.white)),
-                ),
+                // ElevatedButton(
+                //   onPressed: onCancel,
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: kGroupPurple,
+                //     shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(10)),
+                //     padding: const EdgeInsets.symmetric(
+                //         horizontal: 20, vertical: 12),
+                //   ),
+                //   child: const Text('Cancel',
+                //       style: TextStyle(color: Colors.white)),
+                // ),
+                OutlinedButton(
+  onPressed: onCancel,
+  style: OutlinedButton.styleFrom(
+   
+    backgroundColor: const Color.fromARGB(255, 181, 147, 228), 
+    
+    side: const BorderSide(color: kGroupPurple), 
+    
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 20, 
+      vertical: 12,
+    ),
+  ),
+  child: const Text(
+    'Cancel',
+    style: TextStyle(color: Colors.white),
+  ),
+),
                 const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: onConfirm,

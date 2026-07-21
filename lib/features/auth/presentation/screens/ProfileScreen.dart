@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
         if (state is AuthAuthenticated) {
           userName = state.user['name'] ?? "User";
           userEmail = state.user['email'] ?? "email@example.com";
-          userAvatar = state.user['avatar']; // API ကပြန်ပေးတဲ့ avatar URL
+          userAvatar = state.user['avatar']; 
         }
 
         return Scaffold(
@@ -78,8 +78,7 @@ class ProfileScreen extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     child: Column(
                       children: [
-                        _buildMenuTile(context, Icons.thumb_up_alt_outlined, "Recommend To Friends", onTap: () async {const String message = "This app is really great to use, give it a try!";
-                        await Share.share(message);}),
+                        _buildMenuTile(context, Icons.thumb_up_alt_outlined, "Recommend To Friends", onTap: () async {const String message = "This app is really great to use, give it a try!"; await Share.share(message);}),
                         _buildMenuTile(context, Icons.account_balance_wallet_outlined, "Budget", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => BudgetScreen())); }),
                         _buildMenuTile(context, Icons.task_alt_outlined, "Recurring Transactions", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => RecurringTransactionsScreen()));  }),
                         _buildMenuTile(context, Icons.groups_outlined, "Groups", onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (_) => GroupsScreen())); }),

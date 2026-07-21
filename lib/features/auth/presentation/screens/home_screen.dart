@@ -240,7 +240,7 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
               decoration: BoxDecoration(color: Color(0xFFEDE7F6), borderRadius: BorderRadius.circular(12)),
               child: ClipOval(
                // borderRadius: BorderRadius.circular(6),
-                child: Image.asset('assets/images/logo.jpg', fit: BoxFit.cover),
+                child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 50),
@@ -544,7 +544,7 @@ Row(
                 child: Row(
                   children: const [
                     Text("See all", style: TextStyle(color: Color(0xFF7C3AED), fontSize: 12, fontWeight: FontWeight.w600)),
-                    Icon(Icons.arrow_back_ios_outlined, size: 10, color: Color(0xFF7C3AED)),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF7C3AED)),
                   ],
                 ),
               ),

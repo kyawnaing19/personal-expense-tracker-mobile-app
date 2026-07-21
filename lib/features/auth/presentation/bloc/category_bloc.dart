@@ -82,3 +82,4 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryStateBase> {
     return super.close();
   }
 }
+
