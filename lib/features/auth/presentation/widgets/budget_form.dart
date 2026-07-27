@@ -154,11 +154,16 @@ class _BudgetFormState extends State<BudgetForm> {
                 ),
               ),
 
-              _formRow("Amount", child: _inputBox(child: TextField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-              ))),
+             _formRow("Amount", child: _inputBox(child: TextField(
+  controller: _amountController,
+  keyboardType: TextInputType.number,
+  decoration: const InputDecoration(
+    border: InputBorder.none,
+    isDense: true,
+    suffixText: "Ks",
+    suffixStyle: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+  ),
+))),
 
               _formRow(
                 "Month",

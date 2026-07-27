@@ -8,7 +8,7 @@ import '../bloc/group_state.dart';
 import 'group_detail_screen.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
-const Color kGroupPurple = Color(0xFF6200EE);
+const Color kGroupPurple = Color(0xFF7C3AED);
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({Key? key}) : super(key: key);
@@ -497,7 +497,7 @@ class _JoinGroupDialogState extends State<_JoinGroupDialog> {
                       child: OutlinedButton(
                         onPressed: isSubmitting ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[300]!),
+                          side: BorderSide(color: Color(0xFF7C3AED)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -567,7 +567,7 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group name ထည့်ပေးပါ')),
+        const SnackBar(content: Text('Please add Group name.')),
       );
       return;
     }
@@ -693,18 +693,55 @@ class _CreateGroupForm extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
+              // Expanded(
+              //  child: OutlinedButton(
+              //           onPressed: isSubmitting ? null : onCancel,
+              //           style: OutlinedButton.styleFrom(
+              //             side: BorderSide(color: Colors.grey[300]!),
+              //             padding: const EdgeInsets.symmetric(vertical: 14),
+              //             shape: RoundedRectangleBorder(
+              //                 borderRadius: BorderRadius.circular(10)),
+              //           ),
+              //           child: const Text('Cancel',
+              //               style: TextStyle(color: Colors.black87)),
+              //         ),),
+              // const SizedBox(width: 12),
+              // Expanded(
+              //   child: ElevatedButton(
+              //     onPressed: isSubmitting ? null : onDone,
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: kGroupPurple,
+              //       padding: const EdgeInsets.symmetric(vertical: 14),
+              //       shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(10)),
+              //     ),
+              //     child: isSubmitting
+              //         ? const SizedBox(
+              //             height: 18,
+              //             width: 18,
+              //             child: CircularProgressIndicator(
+              //               strokeWidth: 2,
+              //               color: Colors.white,
+              //             ),
+              //           )
+              //         : const Text('Done',
+              //             style: TextStyle(color: Colors.white)),
+              //   ),
+              // ),
+
               Expanded(
-               child: OutlinedButton(
-                        onPressed: isSubmitting ? null : onCancel,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[300]!),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: const Text('Cancel',
-                            style: TextStyle(color: Colors.black87)),
-                      ),),
+                child: OutlinedButton(
+                  onPressed: isSubmitting ? null : onCancel,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: kGroupPurple.withOpacity(0.5), width: 1.2),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: kGroupPurple)),
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(

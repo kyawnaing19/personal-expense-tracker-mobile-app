@@ -26,7 +26,7 @@ class SettlementRequestRepository {
           .map((json) => SettlementRequestModel.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching settlement requests: ${e.response?.data}',
+      developer.log(' Failed fetching settlement requests: ${e.response?.data}',
           name: 'SettlementRequestRepository');
       throw Exception(_extractError(e) ?? 'Failed to load debt requests');
     }
@@ -35,7 +35,7 @@ class SettlementRequestRepository {
     try {
       await _dio.post(ApiConstants.confirmSettlementRequest(requestId));
     } on DioException catch (e) {
-      developer.log('⚠️ Failed confirming settlement request: ${e.response?.data}',
+      developer.log(' Failed confirming settlement request: ${e.response?.data}',
           name: 'SettlementRequestRepository');
       throw Exception(_extractError(e) ?? 'Failed to confirm request');
     }
@@ -46,7 +46,7 @@ class SettlementRequestRepository {
     try {
       await _dio.post(ApiConstants.rejectSettlementRequest(requestId));
     } on DioException catch (e) {
-      developer.log('⚠️ Failed rejecting settlement request: ${e.response?.data}',
+      developer.log(' Failed rejecting settlement request: ${e.response?.data}',
           name: 'SettlementRequestRepository');
       throw Exception(_extractError(e) ?? 'Failed to reject request');
     }

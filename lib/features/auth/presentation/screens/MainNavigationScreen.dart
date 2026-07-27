@@ -58,7 +58,9 @@ void onTabTapped(int index) {
 
   @override
 Widget build(BuildContext context) {
-  bool shouldHideNavBar = _currentTabIndex == 2 && (_currentState != CategoryState.view);
+  bool shouldHideNavBar = _currentTabIndex == 2 &&
+    (_currentState != CategoryState.view &&
+        _currentState != CategoryState.deleteConfirm);
 
   return PopScope(
     canPop: _currentTabIndex == 0,
@@ -162,7 +164,6 @@ class NavCurvePainter extends CustomPainter {
   final int selectedIndex;
   final double tabWidth;
   NavCurvePainter({required this.selectedIndex, required this.tabWidth});
-
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()

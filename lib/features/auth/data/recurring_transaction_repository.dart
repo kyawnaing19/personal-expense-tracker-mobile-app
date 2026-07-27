@@ -28,35 +28,35 @@ class RecurringTransactionRepository {
           if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
         },
       );
-      developer.log('✅ Recurring Transaction Created.', name: 'RecurringTransactionRepository');
+      developer.log('Recurring Transaction Created.', name: 'RecurringTransactionRepository');
       return RecurringTransactionItem.fromJson(response.data['data']);
     } catch (e) {
-      developer.log('⚠️ Failed to create recurring transaction: $e', name: 'RecurringTransactionRepository');
+      developer.log(' Failed to create recurring transaction: $e', name: 'RecurringTransactionRepository');
       throw Exception('Failed to create recurring transaction');
     }
   }
 
-  Future<List<RecurringTransactionItem>> getRecurringTransactions({
-    String? type, 
-    String? categoryId,
-  }) async {
-    try {
-      final response = await _dio.get(
-        ApiConstants.recurringTransactions,
-        queryParameters: {
-          if (type != null && type.toLowerCase() != 'all') 'type': type.toLowerCase(),
-          if (categoryId != null && categoryId.isNotEmpty) 'category': categoryId,
-        },
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((json) => RecurringTransactionItem.fromJson(json)).toList();
-      }
-    } catch (e) {
-      developer.log('⚠️ Failed fetching recurring transactions: $e', name: 'RecurringTransactionRepository');
+ Future<List<RecurringTransactionItem>> getRecurringTransactions({
+  String? type, 
+  String? categoryId,
+}) async {
+  try {
+    final response = await _dio.get(
+      ApiConstants.recurringTransactions,
+      queryParameters: {
+        if (type != null && type.toLowerCase() != 'all') 'type': type.toLowerCase(),
+        if (categoryId != null && categoryId.isNotEmpty) 'category_id': categoryId, // fixed: was 'category'
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data.map((json) => RecurringTransactionItem.fromJson(json)).toList();
     }
-    return [];
+  } catch (e) {
+    developer.log(' Failed fetching recurring transactions: $e', name: 'RecurringTransactionRepository');
   }
+  return [];
+}
   Future<void> updateRecurringTransaction({
     required String id,
     required String categoryId,
@@ -76,9 +76,9 @@ class RecurringTransactionRepository {
           if (note != null) 'note': note.trim(),
         },
       );
-      developer.log('✅ Recurring Transaction Updated.', name: 'RecurringTransactionRepository');
+      developer.log(' Recurring Transaction Updated.', name: 'RecurringTransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Failed to update recurring transaction: $e', name: 'RecurringTransactionRepository');
+      developer.log(' Failed to update recurring transaction: $e', name: 'RecurringTransactionRepository');
       throw Exception('Failed to update recurring transaction');
     }
   }
@@ -86,9 +86,9 @@ class RecurringTransactionRepository {
   Future<void> deleteRecurringTransaction(String id) async {
     try {
       await _dio.delete('${ApiConstants.recurringTransactions}/$id');
-      developer.log('✅ Recurring Transaction Deleted.', name: 'RecurringTransactionRepository');
+      developer.log(' Recurring Transaction Deleted.', name: 'RecurringTransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Failed to delete recurring transaction: $e', name: 'RecurringTransactionRepository');
+      developer.log(' Failed to delete recurring transaction: $e', name: 'RecurringTransactionRepository');
       throw Exception('Failed to delete recurring transaction');
     }
   }

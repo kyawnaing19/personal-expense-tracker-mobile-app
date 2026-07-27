@@ -50,7 +50,7 @@ class CategoryRepository {
       'type': item.type,
     }).toList();
     _cacheBox.put('cached_list', rawList);
-    developer.log('📦 [LOCAL DB] Successfully cached ${items.length} items to Hive.', name: 'CategoryRepository');
+    developer.log(' [LOCAL DB] Successfully cached ${items.length} items to Hive.', name: 'CategoryRepository');
   }
 
   List<CategoryItem> _loadFromLocalDB() {
@@ -77,10 +77,10 @@ class CategoryRepository {
 
   Future<List<CategoryItem>> getCategories() async {
     final localData = _loadFromLocalDB();
-    developer.log('⚡ [LOCAL DB LOAD] Found ${localData.length} items in Cache.', name: 'CategoryRepository');
+    developer.log(' [LOCAL DB LOAD] Found ${localData.length} items in Cache.', name: 'CategoryRepository');
 
     try {
-      developer.log('🚀 [API GET] Fetching fresh data from Server...', name: 'CategoryRepository');
+      developer.log(' [API GET] Fetching fresh data from Server...', name: 'CategoryRepository');
       final response = await _dio.get(ApiConstants.categories);
 
       if (response.statusCode == 200) {
@@ -107,7 +107,7 @@ class CategoryRepository {
         return remoteItems;
       }
     } catch (e) {
-      developer.log('⚠️ [OFFLINE MODE] Network failed ($e). Using Local Cache instead.', name: 'CategoryRepository');
+      developer.log(' [OFFLINE MODE] Network failed ($e). Using Local Cache instead.', name: 'CategoryRepository');
       if (localData.isNotEmpty) {
         return localData;
       }
@@ -148,9 +148,9 @@ class CategoryRepository {
         _saveToLocalDB(listForUpdate);
       }
 
-      developer.log('✅ [SERVER SYNC] Category Created and Synced to Server with ID: $serverId', name: 'CategoryRepository');
+      developer.log(' [SERVER SYNC] Category Created and Synced to Server with ID: $serverId', name: 'CategoryRepository');
     } catch (e) {
-      developer.log('⚠️ [LOCAL ONLY SAVED] Internet offline. Saved locally with Temp ID.', name: 'CategoryRepository');
+      developer.log(' [LOCAL ONLY SAVED] Internet offline. Saved locally with Temp ID.', name: 'CategoryRepository');
     }
     return newItem;
   }
@@ -174,9 +174,9 @@ class CategoryRepository {
           'type': type.toLowerCase(),
         },
       );
-      developer.log('✅ [SERVER SYNC] Category ID: $id Update Synced.', name: 'CategoryRepository');
+      developer.log(' [SERVER SYNC] Category ID: $id Update Synced.', name: 'CategoryRepository');
     } catch (e) {
-      developer.log('⚠️ [LOCAL ONLY UPDATED] Update saved locally. Internet offline.', name: 'CategoryRepository');
+      developer.log(' [LOCAL ONLY UPDATED] Update saved locally. Internet offline.', name: 'CategoryRepository');
     }
   }
 
@@ -188,15 +188,20 @@ class CategoryRepository {
       currentList.removeWhere((element) => element.id.toString() == id.toString());
       _saveToLocalDB(currentList);
 
-      developer.log('✅ [SERVER SYNC] Category ID: $id Deleted.', name: 'CategoryRepository');
+      developer.log(' [SERVER SYNC] Category ID: $id Deleted.', name: 'CategoryRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ [SERVER ERROR] Cannot delete category: ${e.response?.statusCode}', name: 'CategoryRepository');
-
-      if (e.response?.statusCode == 500) {
-        throw Exception("This category contains transactions and cannot be deleted.");
+      String? serverMessage;
+      final responseData = e.response?.data;
+      if (responseData is Map && responseData['message'] != null) {
+        serverMessage = responseData['message'].toString();
       }
 
-      throw Exception("Failed to delete category. Please try again.");
+      developer.log(
+        ' [SERVER ERROR] Cannot delete category (${e.response?.statusCode}): ${serverMessage ?? e.message}',
+        name: 'CategoryRepository',
+      );
+
+      throw Exception(serverMessage ?? "Failed to delete category. Please try again.");
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -206,7 +211,7 @@ class CategoryRepository {
     try {
       categories = await getCategories();
     } catch (e) {
-      developer.log('⚠️ [MIGRATION] Failed to load categories: $e', name: 'CategoryRepository');
+      developer.log(' [MIGRATION] Failed to load categories: $e', name: 'CategoryRepository');
       return;
     }
 
@@ -236,9 +241,9 @@ class CategoryRepository {
           type: c.type,
         );
         fixedCount++;
-        developer.log('🔧 [MIGRATION] Fixed icon for "${c.name}" -> $mappedKey', name: 'CategoryRepository');
+        developer.log(' [MIGRATION] Fixed icon for "${c.name}" -> $mappedKey', name: 'CategoryRepository');
       } catch (e) {
-        developer.log('⚠️ [MIGRATION] Failed to fix "${c.name}": $e', name: 'CategoryRepository');
+        developer.log(' [MIGRATION] Failed to fix "${c.name}": $e', name: 'CategoryRepository');
       }
     }
 
@@ -246,7 +251,7 @@ class CategoryRepository {
       await getCategories();
     }
 
-    developer.log('✅ [MIGRATION] Completed. Fixed $fixedCount categor${fixedCount == 1 ? 'y' : 'ies'}.', name: 'CategoryRepository');
+    developer.log(' [MIGRATION] Completed. Fixed $fixedCount categor${fixedCount == 1 ? 'y' : 'ies'}.', name: 'CategoryRepository');
   }
 }
 

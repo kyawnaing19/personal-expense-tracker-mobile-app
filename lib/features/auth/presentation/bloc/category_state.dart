@@ -13,5 +13,6 @@ class CategoryLoaded extends CategoryStateBase {
 
 class CategoryError extends CategoryStateBase {
   final String message;
-  CategoryError(this.message);
+  final List<CategoryItem> categories;  
+  CategoryError(this.message, this.categories);
 }

@@ -38,34 +38,37 @@ class AnalyticsRepository {
         final data = response.data;
 
         if (data is Map && data['success'] == false) {
-          developer.log('⚠️ Analytics API returned success:false — ${data['message']}',
+          developer.log(' Analytics API returned success:false — ${data['message']}',
               name: 'AnalyticsRepository');
           throw Exception(data['message'] ?? 'Failed to load analytics data');
         }
-        developer.log('✅ Analytics Sync Success.', name: 'AnalyticsRepository');
+        developer.log(' Analytics Sync Success.', name: 'AnalyticsRepository');
         return data;
       }
     } catch (e) {
-      developer.log('⚠️ Analytics Sync Failed: $e', name: 'AnalyticsRepository');
+      developer.log(' Analytics Sync Failed: $e', name: 'AnalyticsRepository');
       throw Exception('Failed to load analytics data');
     }
     return {};
   }
 
-  Future<List<dynamic>> getAnnualSummary() async {
-    try {
-      final response = await _dio.get(ApiConstants.annualSummary);
+  Future<List<dynamic>> getAnnualSummary({required String filter}) async {
+  try {
+    final response = await _dio.get(
+      ApiConstants.annualSummary,
+      queryParameters: {'filter': filter},
+    );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is Map && data['success'] == true) {
-          developer.log('✅ Annual Summary Sync Success.', name: 'AnalyticsRepository');
-          return data['data'] as List<dynamic>? ?? [];
-        }
+    if (response.statusCode == 200) {
+      final data = response.data;
+      if (data is Map && data['success'] == true) {
+        developer.log(' Annual Summary Sync Success.', name: 'AnalyticsRepository');
+        return data['data'] as List<dynamic>? ?? [];
       }
-    } catch (e) {
-      developer.log('⚠️ Annual Summary Fetch Failed: $e', name: 'AnalyticsRepository');
     }
-    return [];
+  } catch (e) {
+    developer.log(' Annual Summary Fetch Failed: $e', name: 'AnalyticsRepository');
   }
+  return [];
+}
 }

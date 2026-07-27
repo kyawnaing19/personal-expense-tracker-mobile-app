@@ -9,7 +9,7 @@ import '../bloc/expense_event.dart';
 import '../bloc/expense_state.dart';
 
 const Color kDetailBg = Color(0xFFE8DEF8);
-const Color kDetailPurple = Color(0xFF6200EE);
+const Color kDetailPurple = Color(0xFF7C3AED);
 
 const List<Color> _kAvatarColors = [
   Color(0xFF6200EE),
@@ -227,10 +227,34 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
           'Delete "${expense.description.isNotEmpty ? expense.description : 'this expense'}"? '
           'This action cannot be undone.',
         ),
+        // actions: [
+        //   TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+        //   TextButton(onPressed: () => Navigator.pop(dialogContext, true),
+        //       child: const Text('Delete', style: TextStyle(color: Colors.red))),
+        // ],
+
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red))),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF7C3AED),
+              side: const BorderSide(color: Color(0xFF7C3AED), width: 1.2),
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
+            child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              elevation: 0,
+            ),
+            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );
@@ -259,7 +283,7 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
     return BlocConsumer<ExpenseBloc, ExpenseStateBase>(
       listener: (context, state) {
         if (state is ExpenseDetailLoaded) {
-          _expense = state.expense; // cache လုပ်ထားမယ်
+          _expense = state.expense; 
         } else if (state is ExpenseUpdateSuccess) {
           _expense = state.expense;
           setState(() => _isEditing = false);
@@ -343,10 +367,10 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                 _label('Amount'),
                                 TextField(controller: _amountController,
                                     keyboardType: TextInputType.number,
-                                    decoration: _editDecoration()),
+                                    decoration: _editDecoration().copyWith(suffixText: 'Ks')),
                                 const SizedBox(height: 16),
                               ] else
-                                _DetailRow(label: 'Amount', value: _formatNumber(expense.amount)),
+                                _DetailRow(label: 'Amount', value: '${_formatNumber(expense.amount)} Ks'),
                               const SizedBox(height: 16),
 
                               if (_isEditing) ...[
@@ -424,9 +448,9 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                             ),
                                           ),
                                           Text(
-                                            _equalEditMembers.any((em) => em.id == m.id)
-                                                ? _formatNumber(_amount > 0 ? _equalEditShare : 0)
-                                                : '0',
+                                          _equalEditMembers.any((em) => em.id == m.id)
+                                          ? '${_formatNumber(_amount > 0 ? _equalEditShare : 0)} Ks'
+                                          : '0 Ks',
                                             style: const TextStyle(fontWeight: FontWeight.w600),
                                           ),
                                         ],
@@ -441,7 +465,7 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                 const SizedBox(height: 16),
                                 _DetailRow(
                                   label: "${expense.paidBy?.name ?? ''}'s Share",
-                                  value: _formatNumber(_payerShareAmount(expense)),
+                                  value: '${_formatNumber(_payerShareAmount(expense))} Ks',
                                 ),
                               ],
                               const SizedBox(height: 20),
@@ -485,11 +509,11 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.w600,
                                                     fontSize: 12.5)),
-                                            Text(
-                                                '${_formatNumber(sum)}/${_formatNumber(total)}',
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 12.5)),
+                                           Text(
+    '${_formatNumber(sum)} Ks / ${_formatNumber(total)} Ks',
+    style: const TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 12.5)),
                                           ],
                                         ),
                                       ),
@@ -498,11 +522,11 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                           padding: const EdgeInsets.only(
                                               top: 4, left: 2),
                                           child: Text(
-                                            'Remaining : ${_formatNumber(remaining < 0 ? 0 : remaining)}',
-                                            style: TextStyle(
-                                                color: Colors.orange[800],
-                                                fontSize: 11),
-                                          ),
+  'Remaining : ${_formatNumber(remaining < 0 ? 0 : remaining)} Ks',
+  style: TextStyle(
+      color: Colors.orange[800],
+      fontSize: 11),
+),
                                         ),
                                       const SizedBox(height: 10),
                                     ],
@@ -524,15 +548,15 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                             style: const TextStyle(fontWeight: FontWeight.w600),
                                           ),
                                         ),
-                                        SizedBox(
-                                          width: 90,
-                                          child: TextField(
-                                            controller: _splitControllers[m.id],
-                                            keyboardType: TextInputType.number,
-                                            textAlign: TextAlign.right,
-                                            decoration: _editDecoration(dense: true),
-                                          ),
-                                        ),
+                                       SizedBox(
+  width: 90,
+  child: TextField(
+    controller: _splitControllers[m.id],
+    keyboardType: TextInputType.number,
+    textAlign: TextAlign.right,
+    decoration: _editDecoration(dense: true).copyWith(suffixText: 'Ks'),
+  ),
+),
                                       ],
                                     ),
                                   ),
@@ -543,23 +567,101 @@ class _GroupExpenseDetailScreenState extends State<GroupExpenseDetailScreen> {
                                 ],
                               const SizedBox(height: 10),
 
-                              Align(
+//                               Align(
+//                                 alignment: Alignment.centerRight,
+//                                 child: Row(
+//                                   mainAxisSize: MainAxisSize.min,
+//                                   children: [
+//                                     TextButton(
+//                                       onPressed: isBusy
+//                                           ? null
+//                                           : () => _isEditing
+//                                               ? setState(() => _isEditing = false)
+//                                               : _confirmDelete(expense!),
+//                                       style: TextButton.styleFrom(
+//                                         backgroundColor: const Color(0xFFEDE7F6),
+//                                         foregroundColor: const Color(0xFF4A4A4A),
+//                                         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+//                                         shape: const StadiumBorder(),
+//                                         elevation: 0,
+//                                       ),
+//                                       child: Text(_isEditing ? 'Cancel' : 'Delete',
+//                                           style: const TextStyle(fontWeight: FontWeight.w600)),
+//                                     ),
+//                                     const SizedBox(width: 10),
+//                                     ElevatedButton(
+//                                       onPressed: isBusy
+//                                           ? null
+//                                           : () => _isEditing
+//                                               ? _saveEdit(expense!)
+//                                               : _startEditing(expense!),
+//                                       style: ElevatedButton.styleFrom(
+//                                         backgroundColor: kDetailPurple,
+//                                         foregroundColor: Colors.white,
+//                                         padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
+//                                         shape: const StadiumBorder(),
+//                                         elevation: 0,
+//                                       ),
+//                                       child: isBusy
+//                                           ? const SizedBox(height: 18, width: 18,
+//                                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+//                                           : Text(_isEditing ? 'Save' : 'Edit',
+//                                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+
+//   Widget _label(String text) => Padding(
+//         padding: const EdgeInsets.only(bottom: 6),
+//         child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+//       );
+
+//   InputDecoration _editDecoration({bool dense = false}) => InputDecoration(
+//         isDense: dense,
+//         contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: dense ? 8 : 12),
+//         enabledBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(dense ? 8 : 10),
+//           borderSide: BorderSide(color: kDetailPurple.withOpacity(0.4)),
+//         ),
+//         focusedBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(dense ? 8 : 10),
+//           borderSide: const BorderSide(color: kDetailPurple),
+//         ),
+//         border: OutlineInputBorder(borderRadius: BorderRadius.circular(dense ? 8 : 10)),
+//       );
+// }
+
+Align(
                                 alignment: Alignment.centerRight,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    TextButton(
+                                    OutlinedButton(
                                       onPressed: isBusy
                                           ? null
                                           : () => _isEditing
                                               ? setState(() => _isEditing = false)
                                               : _confirmDelete(expense!),
-                                      style: TextButton.styleFrom(
-                                        backgroundColor: const Color(0xFFEDE7F6),
-                                        foregroundColor: const Color(0xFF4A4A4A),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: kDetailPurple,
+                                        side: BorderSide(color: kDetailPurple.withOpacity(0.5), width: 1.2),
                                         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                                         shape: const StadiumBorder(),
-                                        elevation: 0,
                                       ),
                                       child: Text(_isEditing ? 'Cancel' : 'Delete',
                                           style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -703,7 +805,7 @@ class _SplitBreakdownRow extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           if (person.share != null)
-            Text(_formatNumber(person.share!),
+            Text('${_formatNumber(person.share!)} Ks',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
           if (person.isSettled) ...[
             const SizedBox(width: 8),

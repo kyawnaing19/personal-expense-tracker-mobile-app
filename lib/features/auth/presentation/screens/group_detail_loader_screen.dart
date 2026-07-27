@@ -65,7 +65,7 @@ class _GroupDetailLoaderScreenState extends State<GroupDetailLoaderScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios_outlined,size : 20,  color: Colors.black),
             onPressed: () => Navigator.maybePop(context),
           ),
           title: const Text('Group', style: TextStyle(color: Colors.black)),

@@ -10,7 +10,7 @@ import '../bloc/auth_state.dart';
 import '../../../../models/expense_split_model.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
-const Color kGroupPurple = Color(0xFF6200EE);
+const Color kGroupPurple = Color(0xFF7C3AED);
 
 String _formatNumber(int n) {
   final isNeg = n < 0;
@@ -206,11 +206,11 @@ class _SettleDebtCard extends StatelessWidget {
                       Text('Owed to ${split.owedToName}',
                           style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                     const SizedBox(height: 6),
-                    Text('Amount  Owed : ${_formatNumber(split.amountOwed)}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                    const SizedBox(height: 2),
-                    Text('Amount Paid : ${_formatNumber(split.amountPaid)}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                    Text('Amount  Owed : ${_formatNumber(split.amountOwed)} Ks',
+    style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+const SizedBox(height: 2),
+Text('Amount Paid : ${_formatNumber(split.amountPaid)} Ks',
+    style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                   ],
                 ),
               ),
@@ -223,7 +223,7 @@ class _SettleDebtCard extends StatelessWidget {
               Text('Progress (${split.progressPercent}%)',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12)),
               Text(
-                '${_formatNumber(split.amountPaid)} / ${_formatNumber(split.amountOwed)}',
+                 '${_formatNumber(split.amountPaid)} Ks / ${_formatNumber(split.amountOwed)} Ks',
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
             ],
@@ -248,7 +248,7 @@ class _SettleDebtCard extends StatelessWidget {
                 children: [
                   Text('Remaining', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                   Text(
-                    _formatNumber(split.remainingAmount),
+                    '${_formatNumber(split.remainingAmount)} Ks',
                     style: const TextStyle(
                         color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
@@ -434,24 +434,22 @@ class _PayAmountScreenState extends State<_PayAmountScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                textAlign: TextAlign.right,
-                decoration: InputDecoration(
-                  errorText: _errorText,
-                  hintText: '0',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                ),
-                onChanged: (_) {
-                  if (_errorText != null) setState(() => _errorText = null);
-                },
-              ),
+  controller: _amountController,
+  keyboardType: TextInputType.number,
+  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+  textAlign: TextAlign.right,
+  decoration: InputDecoration(
+    errorText: _errorText,
+    hintText: '0',
+    suffixText: 'Ks',
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Colors.grey[300]!),),),
+       onChanged: (_) {
+        if (_errorText != null) setState(() => _errorText = null);
+        },),
               const SizedBox(height: 20),
               Row(
                 children: [

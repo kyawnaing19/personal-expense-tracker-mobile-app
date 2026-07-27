@@ -48,14 +48,15 @@ class AnalyticsBloc extends Bloc<AnalyticsEvent, AnalyticsState> {
 
           List<MonthlyBarData> monthlyBarList = [];
           if (event.period == 'year') {
-            List<dynamic> annualRaw = [];
-            try {
-              annualRaw = await _repository.getAnnualSummary();
-            } catch (e) {
-              developer.log('⚠️ Annual summary fetch error: $e', name: 'AnalyticsBloc');
-            }
-            monthlyBarList = _buildFullYearData(annualRaw, event.type, event.subPeriod);
-          }
+  List<dynamic> annualRaw = [];
+  try {
+    final yearFilter = event.subPeriod == 'last' ? 'last_year' : 'this_year';
+    annualRaw = await _repository.getAnnualSummary(filter: yearFilter);
+  } catch (e) {
+    developer.log('⚠️ Annual summary fetch error: $e', name: 'AnalyticsBloc');
+  }
+  monthlyBarList = _buildFullYearData(annualRaw, event.type, event.subPeriod);
+}
 
           if (targetList.isEmpty && monthlyBarList.isEmpty) {
             emit(AnalyticsEmpty());

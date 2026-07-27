@@ -117,13 +117,21 @@ class _LoginScreenState extends State<LoginScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
+  listener: (context, state) {
   if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+        content: Text(
+          state.message,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+},
         builder: (context, state) {
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),

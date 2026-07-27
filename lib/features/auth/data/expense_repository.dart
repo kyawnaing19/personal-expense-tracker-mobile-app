@@ -32,7 +32,7 @@ class ExpenseRepository {
               : [];
       return data.map((json) => ExpenseModel.fromJson(json)).toList();
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching expenses: ${e.response?.data}',
+      developer.log(' Failed fetching expenses: ${e.response?.data}',
           name: 'ExpenseRepository');
       throw Exception(_extractError(e) ?? 'Failed to load expenses');
     }
@@ -70,10 +70,10 @@ class ExpenseRepository {
 
       final response =
           await _dio.post(ApiConstants.groupExpenses, data: body);
-      developer.log('✅ Expense Created.', name: 'ExpenseRepository');
+      developer.log(' Expense Created.', name: 'ExpenseRepository');
       return ExpenseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Expense Create Failed: ${e.response?.data}',
+      developer.log(' Expense Create Failed: ${e.response?.data}',
           name: 'ExpenseRepository');
       throw Exception(_extractError(e) ?? 'Failed to create expense');
     }
@@ -92,7 +92,7 @@ class ExpenseRepository {
           await _dio.get(ApiConstants.groupExpenseDetail(expenseId));
       return ExpenseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching expense detail: ${e.response?.data}',
+      developer.log(' Failed fetching expense detail: ${e.response?.data}',
           name: 'ExpenseRepository');
       throw Exception(_extractError(e) ?? 'Failed to load expense detail');
     }
@@ -130,10 +130,10 @@ class ExpenseRepository {
       final response = await _dio.put(
           ApiConstants.groupExpenseDetail(expenseId),
           data: body);
-      developer.log('✅ Expense Updated.', name: 'ExpenseRepository');
+      developer.log(' Expense Updated.', name: 'ExpenseRepository');
       return ExpenseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Expense Update Failed: ${e.response?.data}',
+      developer.log(' Expense Update Failed: ${e.response?.data}',
           name: 'ExpenseRepository');
       throw Exception(_extractError(e) ?? 'Failed to update expense');
     }
@@ -142,9 +142,9 @@ class ExpenseRepository {
   Future<void> deleteExpense(String expenseId) async {
     try {
       await _dio.delete(ApiConstants.groupExpenseDetail(expenseId));
-      developer.log('✅ Expense Deleted.', name: 'ExpenseRepository');
+      developer.log(' Expense Deleted.', name: 'ExpenseRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ Expense Delete Failed: ${e.response?.data}',
+      developer.log(' Expense Delete Failed: ${e.response?.data}',
           name: 'ExpenseRepository');
       throw Exception(_extractError(e) ?? 'Failed to delete expense');
     }

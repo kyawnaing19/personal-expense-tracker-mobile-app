@@ -132,6 +132,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
             useMaterial3: true,
+            fontFamily: 'Imprima',
           ),
           
         onGenerateRoute: (settings) {
@@ -177,10 +178,15 @@ class MyApp extends StatelessWidget {
   }
 },
 
-          builder: (context, child) {
-            return ConnectivityListener(
-              child: OfflineBanner(
-                child: child ?? const SizedBox.shrink(),
+         builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(1.0),
+              ),
+              child: ConnectivityListener(
+                child: OfflineBanner(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             );
           },

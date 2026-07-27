@@ -172,10 +172,7 @@ class _RecurringTransactionsScreenState extends State<RecurringTransactionsScree
                       height: 46,
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context, false),
-                      //   style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                      //   child: const Text('No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      // ),
-style: OutlinedButton.styleFrom(
+                          style: OutlinedButton.styleFrom(
                           side: BorderSide(color: primaryPurple, width: 1.5),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
@@ -414,9 +411,9 @@ style: OutlinedButton.styleFrom(
               mainAxisSize: MainAxisSize.min,
               children: [
                 FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(formatter.format(item.amount), maxLines: 1, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15)),
-                ),
+                 fit: BoxFit.scaleDown,
+                 child: Text("${formatter.format(item.amount)} Ks", maxLines: 1, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   icon: const Icon(Icons.more_vert, size: 20, color: Colors.black45),

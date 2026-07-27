@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 const Color kSettleBg = Color(0xFFE8DEF8);
-const Color kSettlePurple = Color(0xFF6200EE);
+const Color kSettlePurple = Color(0xFF7C3AED);
 
 class SettlementHistoryScreen extends StatefulWidget {
   final String groupId;

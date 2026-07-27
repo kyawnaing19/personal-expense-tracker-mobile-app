@@ -16,7 +16,7 @@ class GroupRepository {
         return data.map((json) => GroupModel.fromJson(json)).toList();
       }
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching groups: ${e.response?.data}',
+      developer.log(' Failed fetching groups: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to load groups');
     }
@@ -27,7 +27,7 @@ class GroupRepository {
       final response = await _dio.get(ApiConstants.groupDetail(id));
       return GroupModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching group detail: ${e.response?.data}',
+      developer.log(' Failed fetching group detail: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to load group');
     }
@@ -40,10 +40,10 @@ class GroupRepository {
         queryParameters: {'name': name},
       );
 
-      developer.log('✅ Group Created.', name: 'GroupRepository');
+      developer.log(' Group Created.', name: 'GroupRepository');
       return GroupModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Group Create Failed: ${e.response?.data}',
+      developer.log(' Group Create Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to create group');
     }
@@ -59,10 +59,10 @@ class GroupRepository {
         data: {'name': name},
       );
 
-      developer.log('✅ Group Updated.', name: 'GroupRepository');
+      developer.log(' Group Updated.', name: 'GroupRepository');
       return GroupModel.fromJson(response.data['data']);
     } on DioException catch (e) {
-      developer.log('⚠️ Group Update Failed: ${e.response?.data}',
+      developer.log(' Group Update Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to update group');
     }
@@ -71,9 +71,9 @@ class GroupRepository {
   Future<void> deleteGroup({required String id}) async {
     try {
       await _dio.delete('${ApiConstants.groups}/$id');
-      developer.log('✅ Group Deleted.', name: 'GroupRepository');
+      developer.log(' Group Deleted.', name: 'GroupRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ Group Delete Failed: ${e.response?.data}',
+      developer.log(' Group Delete Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to delete group');
     }
@@ -88,11 +88,11 @@ class GroupRepository {
         ApiConstants.groupMembers(id),
         data: {'email': email},
       );
-      developer.log('✅ Member Added.', name: 'GroupRepository');
+      developer.log(' Member Added.', name: 'GroupRepository');
   
       return await getGroupDetail(id);
     } on DioException catch (e) {
-      developer.log('⚠️ Add Member Failed: ${e.response?.data}',
+      developer.log(' Add Member Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to add member');
     }
@@ -105,10 +105,10 @@ class GroupRepository {
   }) async {
     try {
       await _dio.delete(ApiConstants.groupMember(id, userId));
-      developer.log('✅ Member Removed.', name: 'GroupRepository');
+      developer.log(' Member Removed.', name: 'GroupRepository');
       return await getGroupDetail(id);
     } on DioException catch (e) {
-      developer.log('⚠️ Remove Member Failed: ${e.response?.data}',
+      developer.log(' Remove Member Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to remove member');
     }
@@ -117,7 +117,7 @@ class GroupRepository {
   Future<GroupModel> generateJoinCode({required String id}) async {
     try {
       final response = await _dio.post(ApiConstants.groupJoinCode(id));
-      developer.log('✅ Join Code Generated.', name: 'GroupRepository');
+      developer.log(' Join Code Generated.', name: 'GroupRepository');
       final data = response.data['data'];
 
       if (data is Map && data['members'] != null) {
@@ -125,7 +125,7 @@ class GroupRepository {
       }
       return await getGroupDetail(id);
     } on DioException catch (e) {
-      developer.log('⚠️ Generate Join Code Failed: ${e.response?.data}',
+      developer.log(' Generate Join Code Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Failed to generate invite code');
     }
@@ -139,7 +139,7 @@ class GroupRepository {
         data: {'join_code': code.trim()},
       );
 
-      developer.log('✅ Joined Group.', name: 'GroupRepository');
+      developer.log(' Joined Group.', name: 'GroupRepository');
       final data = response.data['data'];
       if (data is Map && data['id'] != null) {
         final group = GroupModel.fromJson(data as Map<String, dynamic>);
@@ -149,7 +149,7 @@ class GroupRepository {
       }
       throw Exception('Invalid response from server');
     } on DioException catch (e) {
-      developer.log('⚠️ Join Group Failed: ${e.response?.data}',
+      developer.log(' Join Group Failed: ${e.response?.data}',
           name: 'GroupRepository');
       throw Exception(_extractError(e) ?? 'Invalid or expired group code');
     }

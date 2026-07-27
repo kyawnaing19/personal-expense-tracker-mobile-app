@@ -8,7 +8,7 @@ import '../bloc/expense_event.dart';
 import '../bloc/expense_state.dart';
 
 const Color kExpenseBg = Color(0xFFE8DEF8);
-const Color kExpensePurple = Color(0xFF6200EE);
+const Color kExpensePurple = Color(0xFF7C3AED);
 
 class CreateExpenseScreen extends StatefulWidget {
   final GroupModel group;
@@ -232,7 +232,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                                 TextField(
                                   controller: _amountController,
                                   keyboardType: TextInputType.number,
-                                  decoration: _inputDecoration(),
+                                  decoration: _inputDecoration(hint: null).copyWith(suffixText: 'Ks'),
                                 ),
                                 const SizedBox(height: 18),
                                 _label('Group'),
@@ -311,17 +311,60 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  TextButton(
+                            //       TextButton(
+                            //         onPressed: isSubmitting
+                            //             ? null
+                            //             : () => Navigator.pop(context),
+                            //         style: TextButton.styleFrom(
+                            //           backgroundColor: const Color(0xFFEDE7F6),
+                            //           foregroundColor: const Color(0xFF4A4A4A),
+                            //           padding: const EdgeInsets.symmetric(
+                            //               horizontal: 22, vertical: 12),
+                            //           shape: const StadiumBorder(),
+                            //           elevation: 0,
+                            //         ),
+                            //         child: const Text('Cancel',
+                            //             style:
+                            //                 TextStyle(fontWeight: FontWeight.w600)),
+                            //       ),
+                            //       const SizedBox(width: 10),
+                            //       ElevatedButton(
+                            //         onPressed: isSubmitting ? null : _submit,
+                            //         style: ElevatedButton.styleFrom(
+                            //           backgroundColor: kExpensePurple,
+                            //           foregroundColor: Colors.white,
+                            //           padding: const EdgeInsets.symmetric(
+                            //               horizontal: 26, vertical: 12),
+                            //           shape: const StadiumBorder(),
+                            //           elevation: 0,
+                            //         ),
+                            //         child: isSubmitting
+                            //             ? const SizedBox(
+                            //                 height: 18,
+                            //                 width: 18,
+                            //                 child: CircularProgressIndicator(
+                            //                     strokeWidth: 2,
+                            //                     color: Colors.white),
+                            //               )
+                            //             : const Text('Done',
+                            //                 style: TextStyle(
+                            //                     color: Colors.white,
+                            //                     fontWeight: FontWeight.w600)),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // );
+
+                            OutlinedButton(
                                     onPressed: isSubmitting
                                         ? null
                                         : () => Navigator.pop(context),
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: const Color(0xFFEDE7F6),
-                                      foregroundColor: const Color(0xFF4A4A4A),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: kExpensePurple,
+                                      side: BorderSide(color: kExpensePurple.withOpacity(0.5), width: 1.2),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 22, vertical: 12),
                                       shape: const StadiumBorder(),
-                                      elevation: 0,
                                     ),
                                     child: const Text('Cancel',
                                         style:
@@ -439,7 +482,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                 name: m.name,
                 isYou: m.id == _currentUserId,
                 trailing: Text(
-                  _formatNumber(_amount > 0 ? _equalShare : 0),
+                 '${_formatNumber(_amount > 0 ? _equalShare : 0)} Ks',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -476,7 +519,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
               const Text('Total Split',
                   style:
                       TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5)),
-              Text('${_formatNumber(sum)}/${_formatNumber(total)}',
+              Text('${_formatNumber(sum)} Ks / ${_formatNumber(total)} Ks',
                   style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 12.5)),
             ],
@@ -486,7 +529,7 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 4, left: 2),
             child: Text(
-              'Remaining : ${_formatNumber(remaining < 0 ? 0 : remaining)}',
+              'Remaining : ${_formatNumber(remaining < 0 ? 0 : remaining)} Ks',
               style: TextStyle(color: Colors.orange[800], fontSize: 11),
             ),
           ),
@@ -503,21 +546,22 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.right,
                     decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            BorderSide(color: kExpensePurple.withOpacity(0.4)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: kExpensePurple),
-                      ),
-                      border:
-                          OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
+  isDense: true,
+  contentPadding: const EdgeInsets.symmetric(
+      horizontal: 10, vertical: 8),
+  suffixText: 'Ks',
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide:
+        BorderSide(color: kExpensePurple.withOpacity(0.4)),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: const BorderSide(color: kExpensePurple),
+  ),
+  border:
+      OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+),
                   ),
                 ),
               ),

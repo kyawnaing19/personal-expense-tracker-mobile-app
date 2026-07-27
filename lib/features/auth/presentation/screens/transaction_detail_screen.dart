@@ -85,7 +85,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      "Record Details",
+                      "Transaction Details",
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
                     ),
@@ -152,22 +152,22 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                             ),
                             _spacerRow(22),
                             _buildTableRow(
-                              "Amount",
-                              _isEditing
-                                  ? TextField(
-                                      controller: _amountController,
-                                      keyboardType: TextInputType.number,
-                                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                                      decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding: EdgeInsets.zero,
-                                      ),
-                                    )
-                                  : Text(formatter.format(_currentAmount),
-                                      style: const TextStyle(fontSize: 16, color: Colors.black)),
-                              showEditIcon: _isEditing,
-                            ),
+  "Amount",
+  _isEditing
+      ? TextField(
+          controller: _amountController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(fontSize: 16, color: Colors.black),
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        )
+      : Text("${formatter.format(_currentAmount)} Ks",
+          style: const TextStyle(fontSize: 16, color: Colors.black)),
+  showEditIcon: _isEditing,
+),
                             _spacerRow(22),
                             _buildTableRow(
                               "Date",

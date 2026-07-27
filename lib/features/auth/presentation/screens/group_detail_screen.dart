@@ -15,7 +15,7 @@ import 'group_settings_screen.dart';
 import 'create_expense_screen.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
-const Color kGroupPurple = Color(0xFF6200EE);
+const Color kGroupPurple = Color(0xFF7C3AED);
 
 class GroupDetailScreen extends StatefulWidget {
   final GroupModel group;
@@ -294,16 +294,17 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     child: BlocConsumer<ExpenseBloc, ExpenseStateBase>(
                       bloc: _expenseBloc,
                       listener: (context, expenseState) {
-                        if (expenseState is ExpenseError) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Expense list load error: ${expenseState.message}'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
+  if (expenseState is ExpenseError &&
+      ModalRoute.of(context)?.isCurrent == true) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'Expense list load error: ${expenseState.message}'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+},
                       builder: (context, expenseState) {
                         if (expenseState is ExpenseListLoading ||
                             expenseState is ExpenseInitial) {
@@ -472,7 +473,7 @@ class _ExpenseCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(_formatNumber(expense.amount),
+              Text('${_formatNumber(expense.amount)} Ks',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               SizedBox(
@@ -736,11 +737,12 @@ class _AddMembersDialogState extends State<_AddMembersDialog> {
                       child: ElevatedButton(
                         onPressed:
                             isSubmitting ? null : () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[300],
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.grey[100],
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
+                          side: const BorderSide(color: Color(0xFF7C3AED)),
                         ),
                         child: const Text('Cancel',
                             style: TextStyle(color: Colors.black87)),

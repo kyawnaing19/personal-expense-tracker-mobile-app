@@ -12,9 +12,9 @@ class TransactionRepository {
   Future<void> createTransaction({required String categoryId, required double amount, required String note}) async {
     try {
       await _dio.post(ApiConstants.transactions, data: {'category_id': categoryId, 'amount': amount.toInt(), 'note': note});
-      developer.log('✅ Transaction Sync Success.', name: 'TransactionRepository');
+      developer.log(' Transaction Sync Success.', name: 'TransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Transaction Sync Failed: $e', name: 'TransactionRepository');
+      developer.log(' Transaction Sync Failed: $e', name: 'TransactionRepository');
       throw Exception('Failed to create transaction');
     }
   }
@@ -43,7 +43,7 @@ class TransactionRepository {
         }).toList();
       }
     } catch (e) {
-      developer.log('⚠️ Failed fetching transactions: $e', name: 'TransactionRepository');
+      developer.log(' Failed fetching transactions: $e', name: 'TransactionRepository');
     }
     return [];
   }
@@ -51,9 +51,9 @@ class TransactionRepository {
   Future<void> updateTransaction({required String id, required double amount, required String note}) async {
    try {
      await _dio.put('${ApiConstants.transactions}/$id', data: {'amount': amount.toInt(), 'note': note});
-      developer.log('✅ Transaction Update Success.', name: 'TransactionRepository');
+      developer.log(' Transaction Update Success.', name: 'TransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Transaction Update Failed: $e', name: 'TransactionRepository');
+      developer.log(' Transaction Update Failed: $e', name: 'TransactionRepository');
       throw Exception('Failed to update transaction');
     }
   }
@@ -61,9 +61,9 @@ class TransactionRepository {
   Future<void> deleteTransaction(String id) async {
   try {
       await _dio.delete('${ApiConstants.transactions}/$id');
-      developer.log('✅ Transaction Delete Success.', name: 'TransactionRepository');
+      developer.log(' Transaction Delete Success.', name: 'TransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Transaction Delete Failed: $e', name: 'TransactionRepository');
+      developer.log(' Transaction Delete Failed: $e', name: 'TransactionRepository');
       throw Exception('Failed to delete transaction');
     }
   }

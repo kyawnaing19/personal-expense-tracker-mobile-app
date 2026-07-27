@@ -10,7 +10,7 @@ import '../bloc/group_event.dart';
 import '../bloc/group_state.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
-const Color kGroupPurple = Color(0xFF6200EE);
+const Color kGroupPurple = Color(0xFF7C3AED);
 
 class GroupSettingsScreen extends StatefulWidget {
   final GroupModel group;
@@ -128,42 +128,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               );
             }
           },
-          // builder: (context, state) {
-          //   final isBusy = state is GroupLoading || _loadingMe;
-          //   return Padding(
-          //     padding: const EdgeInsets.all(20),
-          //     child: SingleChildScrollView(
-          //       child: Column(
-          //         crossAxisAlignment: CrossAxisAlignment.start,
-          //         children: [
-          //           Row(
-          //             children: [
-          //               _RoundIconButton(
-          //                 icon: Icons.arrow_back_ios_outlined,
-          //                 onTap: () => Navigator.pop(context),
-          //               ),
-          //               const Expanded(
-          //                 child: Center(
-          //                   child: Text(
-          //                     'Settings',
-          //                     style: TextStyle(
-          //                         fontSize: 18, fontWeight: FontWeight.bold),
-          //                   ),
-          //                 ),
-          //               ),
-          //               const SizedBox(width: 40),
-          //             ],
-          //           ),
-          //           const SizedBox(height: 20),
-
-          //           Container(
-          //             width: double.infinity,
-          //             padding: const EdgeInsets.all(16),
+          
             builder: (context, state) {
             final isBusy = state is GroupLoading || _loadingMe;
             return Column(
               children: [
-                // ── Static Nav Bar ── (scroll လုပ်လည်း မရွှေ့တော့ပါ)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                   child: Row(
@@ -186,8 +155,6 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // ── Scrollable Content ──
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -703,7 +670,7 @@ class _DeleteGroupDialog extends StatelessWidget {
                 const Text(
                   'Delete Group',
                   style: TextStyle(
-                      color: Colors.red,
+                      color: Color.fromARGB(255, 14, 13, 13),
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
@@ -718,22 +685,16 @@ class _DeleteGroupDialog extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFDECEC),
+                color: const Color.fromARGB(255, 252, 236, 253),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFF5B5B5)),
+                border: Border.all(color: kGroupPurple),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  // Text(
-                  //   'Warning: This action cannot be undone',
-                  //   style: TextStyle(
-                  //       color: Colors.red, fontWeight: FontWeight.w600),
-                  // ),
-               //   SizedBox(height: 8),
                   Text(
                     'Warning:Deleting this group will permanently remove all expenses, balances and members data associated with it.',
-                    style: TextStyle(color: Colors.red, fontSize: 12.5),
+                    style: TextStyle(color: Color.fromARGB(255, 15, 14, 14), fontSize: 12.5),
                   ),
                 ],
               ),
@@ -742,23 +703,11 @@ class _DeleteGroupDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ElevatedButton(
-                //   onPressed: onCancel,
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: kGroupPurple,
-                //     shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(10)),
-                //     padding: const EdgeInsets.symmetric(
-                //         horizontal: 20, vertical: 12),
-                //   ),
-                //   child: const Text('Cancel',
-                //       style: TextStyle(color: Colors.white)),
-                // ),
                 OutlinedButton(
   onPressed: onCancel,
   style: OutlinedButton.styleFrom(
    
-    backgroundColor: const Color.fromARGB(255, 181, 147, 228), 
+    backgroundColor: const Color.fromARGB(255, 238, 232, 245), 
     
     side: const BorderSide(color: kGroupPurple), 
     
@@ -772,7 +721,7 @@ class _DeleteGroupDialog extends StatelessWidget {
   ),
   child: const Text(
     'Cancel',
-    style: TextStyle(color: Colors.white),
+    style: TextStyle(color: kGroupPurple),
   ),
 ),
                 const SizedBox(width: 12),

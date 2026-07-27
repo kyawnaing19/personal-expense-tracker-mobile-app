@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 const Color kGroupBg = Color(0xFFE8DEF8);
-const Color kGroupPurple = Color(0xFF6200EE);
+const Color kGroupPurple = Color(0xFF7C3AED);
 
 String _formatNumber(int n) {
   final isNeg = n < 0;
@@ -190,7 +190,7 @@ class _MemberBalanceCard extends StatelessWidget {
                   Text('Recievable',
                       style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                   const SizedBox(height: 4),
-                  Text('+${_formatNumber(member.totalReceivable)}',
+                  Text('+${_formatNumber(member.totalReceivable)} Ks',
                       style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
@@ -203,7 +203,7 @@ class _MemberBalanceCard extends StatelessWidget {
                   Text('Payable',
                       style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                   const SizedBox(height: 4),
-                  Text('-${_formatNumber(member.totalPayable)}',
+                  Text('-${_formatNumber(member.totalPayable)} Ks',
                       style: const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.bold,

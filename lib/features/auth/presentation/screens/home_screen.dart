@@ -1,3 +1,4 @@
+import 'package:expense_tracker/features/auth/presentation/bloc/category_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +15,88 @@ import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.da
 import 'package:expense_tracker/features/auth/presentation/bloc/category_state.dart';
 import 'package:expense_tracker/features/auth/presentation/screens/transaction_detail_screen.dart';
 import 'record_history_screen.dart';
-import 'category_screen.dart'; 
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 enum CategoryState { view, add, edit }
+class AutoSlideText extends StatefulWidget {
+  final String valueText;
+  final TextStyle textStyle;
+  final bool centerText;
+  
+
+  const AutoSlideText({
+    super.key,
+    required this.valueText,
+    required this.textStyle,
+    this.centerText = false,
+  });
+
+  @override
+  State<AutoSlideText> createState() => _AutoSlideTextState();
+}
+
+class _AutoSlideTextState extends State<AutoSlideText> {
+  bool _isActive = false;
+
+  void _toggle() {
+    setState(() => _isActive = !_isActive);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxWidth = constraints.maxWidth;
+        final TextPainter textPainter = TextPainter(
+          text: TextSpan(text: widget.valueText, style: widget.textStyle),
+          maxLines: 1,
+          textDirection: ui.TextDirection.ltr,
+        )..layout();
+
+        final double fullTextWidth = textPainter.width;
+        final double textHeight = textPainter.height;
+        final bool isOverflowing = fullTextWidth > maxWidth;
+        final double overflowAmount =
+            isOverflowing ? (fullTextWidth - maxWidth) : 0;
+        final bool shouldCenter = widget.centerText && !isOverflowing && !_isActive;
+
+        return GestureDetector(
+          onTap: isOverflowing ? _toggle : null,
+          child: SizedBox(
+            width: maxWidth,
+            height: textHeight,
+            child: ClipRect(
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    top: 0,
+                    left: _isActive ? -overflowAmount : 0,
+                    width: _isActive ? fullTextWidth : maxWidth,
+                    child: Text(
+                      widget.valueText,
+                      style: widget.textStyle,
+                      maxLines: 1,
+                      softWrap: false,
+                      textAlign: shouldCenter ? TextAlign.center : TextAlign.start,
+                      overflow: _isActive
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onNavigateToHistory;
@@ -29,7 +108,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 0;
-  CategoryState _currentState = CategoryState.view; 
+  CategoryState _currentState = CategoryState.view;
   late final List<Widget> _pages;
 
   @override
@@ -37,10 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pages = [
       _HomeDashboardBody(onSeeAllTransactions: _goToTransactionHistory),
-      const Center(child: Text("Pie Chart / Analytics Screen", style: TextStyle(fontSize: 18))), 
-      const CategoryScreen(), 
+      const Center(child: Text("Pie Chart / Analytics Screen", style: TextStyle(fontSize: 18))),
+      //const CategoryScreen(),
       const SizedBox.shrink(),
-      const Center(child: Text("Profile Screen", style: TextStyle(fontSize: 18))), 
+      const SizedBox.shrink(),
+      const Center(child: Text("Profile Screen", style: TextStyle(fontSize: 18))),
     ];
   }
 
@@ -64,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFEDE7F6),
       body: SafeArea(
         child: _currentTabIndex == 3
-            ? _HomeDashboardBody(onSeeAllTransactions: _goToTransactionHistory) 
+            ? _HomeDashboardBody(onSeeAllTransactions: _goToTransactionHistory)
             : IndexedStack(
                 index: _currentTabIndex,
                 children: _pages,
@@ -87,13 +167,13 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
   String _transactionFilter = 'All';
 
   static const List<Color> _alertColorPalette = [
-    Color(0xFFF59E0B), 
-    Color(0xFF7C3AED), 
-    Color(0xFF3B82F6), 
-    Color(0xFFEC4899), 
-    Color(0xFF14B8A6), 
-    Color(0xFFF43F5E), 
-    Color(0xFF10B981), 
+    Color(0xFFF59E0B),
+    Color(0xFF7C3AED),
+    Color(0xFF3B82F6),
+    Color(0xFFEC4899),
+    Color(0xFF14B8A6),
+    Color(0xFFF43F5E),
+    Color(0xFF10B981),
   ];
 
   Color _colorForAlert(String id) {
@@ -111,6 +191,7 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
   void initState() {
     super.initState();
     context.read<TransactionBloc>().add(LoadTransactions());
+    context.read<CategoryBloc>().add(LoadCategories());
     _loadPendingAlerts();
   }
 
@@ -227,6 +308,7 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
       ],
     );
   }
+
   Widget _buildAppBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -236,10 +318,8 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
             Container(
               width: 40,
               height: 40,
-            //  padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(color: Color(0xFFEDE7F6), borderRadius: BorderRadius.circular(12)),
               child: ClipOval(
-               // borderRadius: BorderRadius.circular(6),
                 child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
               ),
             ),
@@ -321,76 +401,90 @@ class _HomeDashboardBodyState extends State<_HomeDashboardBody> {
               )
             ],
           ),
-          const SizedBox(height: 16),       
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    const Text("Current Balance", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-    const SizedBox(width: 6),
-    GestureDetector(
-      onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
-      child: Icon(_isBalanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.white70, size: 16),
-    )
-  ],
-),
-const SizedBox(height: 4),
-Text(
-  _isBalanceVisible ? formatter.format(balance) : "•••••",
-  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-),
-const SizedBox(height: 20),
-Container(height: 1, color: Colors.white24),
-const SizedBox(height: 16),
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Expanded(
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.white,
-            child: Icon(Icons.arrow_upward, size: 14, color: const Color.fromARGB(255, 25, 209, 120)),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Income", style: TextStyle(color: Colors.white70, fontSize: 12)),
-              Text(_isBalanceVisible ? formatter.format(income) : "•••••",
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              const Text("Current Balance", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
+                child: Icon(_isBalanceVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.white70, size: 16),
+              )
             ],
-          )
-        ],
-      ),
-    ),
-    Container(width: 1, height: 30, color: Colors.white24),
-    Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.white,
-            child: Transform.rotate(
-              angle: math.pi,
-              child: const Icon(Icons.arrow_upward, size: 14, color: Colors.redAccent),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: AutoSlideText(
+              valueText: _isBalanceVisible ? "${formatter.format(balance)} Ks" : "•••••",
+              textStyle: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+              centerText: true,
             ),
           ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+
+          const SizedBox(height: 20),
+          Container(height: 1, color: Colors.white24),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Expense", style: TextStyle(color: Colors.white70, fontSize: 12)),
-              Text(_isBalanceVisible ? formatter.format(expense) : "•••••",
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.arrow_upward, size: 14, color: const Color.fromARGB(255, 25, 209, 120)),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Income", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          AutoSlideText(
+                            valueText: _isBalanceVisible ? "${formatter.format(income)} Ks" : "•••••",
+                            textStyle: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 30, color: Colors.white24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.white,
+                      child: Transform.rotate(
+                        angle: math.pi,
+                        child: const Icon(Icons.arrow_upward, size: 14, color: Colors.redAccent),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Expense", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          AutoSlideText(
+                            valueText: _isBalanceVisible ? "${formatter.format(expense)} Ks" : "•••••",
+                            textStyle: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ],
-          )
-        ],
-      ),
-    ),
-  ],
-),
+          ),
         ],
       ),
     );
@@ -425,7 +519,7 @@ Row(
     );
   }
 
- Widget _buildAlertCard(PendingRecurringTransaction item, List<CategoryItem> categories) {
+  Widget _buildAlertCard(PendingRecurringTransaction item, List<CategoryItem> categories) {
     final bool isIncome = item.type == 'income';
     final formatter = NumberFormat('#,##0');
     final bool isProcessing = _processingAlertIds.contains(item.id);
@@ -483,7 +577,7 @@ Row(
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${formatter.format(item.amount)} MMK payment due ${DateFormat('MMM d').format(item.transactionDate)}',
+                      '${formatter.format(item.amount)} Ks payment due ${DateFormat('MMM d').format(item.transactionDate)}',
                       style: const TextStyle(color: Colors.grey, fontSize: 11),
                     ),
                   ],
@@ -521,6 +615,7 @@ Row(
       ),
     );
   }
+
   Widget _buildRecentTransactionsSection(List<TransactionItem> allTransactions, bool isLoading, List<CategoryItem> categories) {
     List<TransactionItem> filtered = List<TransactionItem>.from(allTransactions);
     if (_transactionFilter != 'All') {
@@ -640,28 +735,33 @@ Row(
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  isExpense ? "-${formatter.format(tx.amount)}" : "+${formatter.format(tx.amount)}",
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 140),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                  isExpense ? "-${formatter.format(tx.amount)} Ks" : "+${formatter.format(tx.amount)} Ks",
                   style: TextStyle(color: isExpense ? Colors.red : Colors.green, fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-         const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(color: isExpense ? const Color(0xFFFFE4E6) : const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(12)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(isExpense ? Icons.arrow_downward : Icons.arrow_upward, size: 10, color: isExpense ? Colors.red : Colors.green),
-                              const SizedBox(width: 2),
-                              Text(tx.type, style: TextStyle(color: isExpense ? Colors.red : Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-              ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(color: isExpense ? const Color(0xFFFFE4E6) : const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(isExpense ? Icons.arrow_downward : Icons.arrow_upward, size: 10, color: isExpense ? Colors.red : Colors.green),
+                        const SizedBox(width: 2),
+                        Text(tx.type, style: TextStyle(color: isExpense ? Colors.red : Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             )
+            
           ],
         ),
       ),

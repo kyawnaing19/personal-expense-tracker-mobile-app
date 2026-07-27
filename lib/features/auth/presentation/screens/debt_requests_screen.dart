@@ -7,7 +7,7 @@ import '../bloc/settlement_request_event.dart';
 import '../bloc/settlement_request_state.dart';
 
 const Color kDebtBg = Color(0xFFE8DEF8);
-const Color kDebtPurple = Color(0xFF6200EE);
+const Color kDebtPurple = Color(0xFF7C3AED);
 const Color kPendingBg = Color(0xFFFCEBD0);
 const Color kPendingText = Color(0xFFB8860B);
 const Color kConfirmedBg = Color(0xFFD9F2E3);
@@ -593,7 +593,7 @@ class _RequestCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatAmount(request.amount),
+                    '${_formatAmount(request.amount)} Ks',
                     style: const TextStyle(
                         fontWeight: FontWeight.w700, fontSize: 14),
                   ),

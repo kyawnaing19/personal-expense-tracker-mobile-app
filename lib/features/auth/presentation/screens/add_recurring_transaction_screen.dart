@@ -258,7 +258,7 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
 
     return Scaffold(
       backgroundColor: const Color(0xFFEDE7F6),
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: BlocListener<RecurringTransactionBloc, RecurringTransactionStateBase>(
           listener: (context, state) {
@@ -279,9 +279,8 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, MediaQuery.of(context).viewInsets.bottom + 16.0),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16.0),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -292,101 +291,114 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                          _buildLabel('Transaction Name'),
-                      _buildTextField(controller: _nameController, hint: 'Please enter the transaction name'),
-                      const SizedBox(height: 14),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildLabel('Transaction Name'),
+                                    _buildTextField(controller: _nameController, hint: 'Please enter the transaction name'),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Category'),
-                      _buildDropdownLikeBox(
-                        onTap: _pickCategory,
-                        child: _selectedCategory == null
-                            ? const Text('Select category', style: TextStyle(color: Colors.black38))
-                            : Row(children: [
-                                CircleAvatar(radius: 12, backgroundColor: _selectedCategory!.color, child: Icon(_selectedCategory!.icon, size: 14, color: Colors.white)),
-                                const SizedBox(width: 8),
-                                Text(_selectedCategory!.name, style: const TextStyle(color: Colors.black)),
-                              ]),
-                      ),
-                      const SizedBox(height: 14),
+                                    _buildLabel('Category'),
+                                    _buildDropdownLikeBox(
+                                      onTap: _pickCategory,
+                                      child: _selectedCategory == null
+                                          ? const Text('Select category', style: TextStyle(color: Colors.black38))
+                                          : Row(children: [
+                                              CircleAvatar(radius: 12, backgroundColor: _selectedCategory!.color, child: Icon(_selectedCategory!.icon, size: 14, color: Colors.white)),
+                                              const SizedBox(width: 8),
+                                              Text(_selectedCategory!.name, style: const TextStyle(color: Colors.black)),
+                                            ]),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Type'),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
-                        child: Text(
-                          _selectedCategory == null ? ' ' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
-                          style: const TextStyle(color: Colors.black54),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+                                    _buildLabel('Type'),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
+                                      child: Text(
+                                        _selectedCategory == null ? ' ' : (_selectedCategory!.type[0].toUpperCase() + _selectedCategory!.type.substring(1)),
+                                        style: const TextStyle(color: Colors.black54),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Transaction Frequency'),
-                      _buildDropdownLikeBox(
-                        onTap: _pickFrequency,
-                        child: Text(
-                          _selectedFrequency == null ? 'Select frequency' : _selectedFrequency![0].toUpperCase() + _selectedFrequency!.substring(1),
-                          style: TextStyle(color: _selectedFrequency == null ? Colors.black38 : Colors.black),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+                                    _buildLabel('Transaction Frequency'),
+                                    _buildDropdownLikeBox(
+                                      onTap: _pickFrequency,
+                                      child: Text(
+                                        _selectedFrequency == null ? 'Select frequency' : _selectedFrequency![0].toUpperCase() + _selectedFrequency!.substring(1),
+                                        style: TextStyle(color: _selectedFrequency == null ? Colors.black38 : Colors.black),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Transaction Start Date'),
-                      _buildDropdownLikeBox(onTap: _pickStartDate, child: Text(DateFormat('MMMM d, yyyy').format(_startDate))),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          _upcomingDatesPreview(),
-                          style: const TextStyle(color: Colors.black38, fontSize: 11),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+                                    _buildLabel('Transaction Start Date'),
+                                    _buildDropdownLikeBox(onTap: _pickStartDate, child: Text(DateFormat('MMMM d, yyyy').format(_startDate))),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 6),
+                                      child: Text(
+                                        _upcomingDatesPreview(),
+                                        style: const TextStyle(color: Colors.black38, fontSize: 11),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Amount'),
-                      _buildTextField(controller: _amountController, hint: '0', keyboardType: TextInputType.number),
-                      const SizedBox(height: 14),
+                                    _buildLabel('Amount'),
+                                    _buildTextField(controller: _amountController, hint: '0', keyboardType: TextInputType.number, suffixText: 'Ks'),
+                                    const SizedBox(height: 14),
 
-                      _buildLabel('Note'),
-                      _buildTextField(controller: _noteController, hint: 'Optional note'),
-                      const SizedBox(height: 24),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: BorderSide(color: primaryPurple, width: 1.5),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    _buildLabel('Note'),
+                                    _buildTextField(controller: _noteController, hint: 'Optional note'),
+                                    const SizedBox(height: 12),
+                                  ],
                                 ),
-                                child: Text('Cancel', style: TextStyle(color: primaryPurple, fontWeight: FontWeight.bold)),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: BlocBuilder<RecurringTransactionBloc, RecurringTransactionStateBase>(
-                              builder: (context, state) {
-                                final loading = state is RecurringTransactionLoading;
-                                return SizedBox(
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: loading ? null : _submit,
-                                    style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                                    child: loading
-                                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                        : const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+
+                            const SizedBox(height: 16),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 110,
+                                    height: 46,
+                                    child: OutlinedButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      style: OutlinedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        side: BorderSide(color: primaryPurple, width: 1.5),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      ),
+                                      child: Text('Cancel', style: TextStyle(color: primaryPurple, fontWeight: FontWeight.bold)),
+                                    ),
                                   ),
-                                );
-                              },
+                                  const SizedBox(width: 12),
+                                  BlocBuilder<RecurringTransactionBloc, RecurringTransactionStateBase>(
+                                    builder: (context, state) {
+                                      final loading = state is RecurringTransactionLoading;
+                                      return SizedBox(
+                                        width: 110,
+                                        height: 46,
+                                        child: ElevatedButton(
+                                          onPressed: loading ? null : _submit,
+                                          style: ElevatedButton.styleFrom(backgroundColor: primaryPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                                          child: loading
+                                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                              : const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      ],
+                          ],
                         ),
                       ),
                     ),
@@ -418,17 +430,23 @@ class _AddRecurringTransactionScreenState extends State<AddRecurringTransactionS
         child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
       );
 
-  Widget _buildTextField({required TextEditingController controller, required String hint, TextInputType? keyboardType}) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.black38), border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+  Widget _buildTextField({required TextEditingController controller, required String hint, TextInputType? keyboardType, String? suffixText}) {
+  return Container(
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE5E7EB))),
+    child: TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black38),
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        suffixText: suffixText,
+        suffixStyle: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
       ),
-    );
-  }
-
+    ),
+  );
+}
   Widget _buildDropdownLikeBox({required VoidCallback onTap, required Widget child}) {
     return InkWell(
       onTap: onTap,

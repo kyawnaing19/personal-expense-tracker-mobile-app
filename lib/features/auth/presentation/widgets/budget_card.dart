@@ -72,20 +72,20 @@ class BudgetCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  children: [
-                    _dataRow("Budget :", formatAmount(budget.budget)),
-                    const SizedBox(height: 6),
-                    _dataRow("Expenses :", formatAmount(budget.spent)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6),
-                      child: Divider(thickness: 1, height: 1, color: Color(0xFFE0E0E0)),
-                    ),
-                    _dataRow("Remaining :", formatAmount(budget.remaining)),
-                  ],
-                ),
-              ),
+             Expanded(
+  child: Column(
+    children: [
+      _dataRow("Budget :", "${formatAmount(budget.budget)} Ks"),
+      const SizedBox(height: 6),
+      _dataRow("Expenses :", "${formatAmount(budget.spent)} Ks"),
+      const Padding(
+        padding: EdgeInsets.symmetric(vertical: 6),
+        child: Divider(thickness: 1, height: 1, color: Color(0xFFE0E0E0)),
+      ),
+      _dataRow("Remaining :", "${formatAmount(budget.remaining)} Ks"),
+    ],
+  ),
+),
             ],
           ),
           const SizedBox(height: 8),

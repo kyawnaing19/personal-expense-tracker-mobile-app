@@ -18,7 +18,7 @@ class ExpenseSplitRepository {
           .map((json) => ExpenseSplitModel.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching my splits: ${e.response?.data}',
+      developer.log(' Failed fetching my splits: ${e.response?.data}',
           name: 'ExpenseSplitRepository');
       throw Exception(_extractError(e) ?? 'Failed to load your debts');
     }
@@ -34,7 +34,7 @@ Future<void> claimPayment({
       data: {'amount': amount},
     );
   } on DioException catch (e) {
-    developer.log('⚠️ Claim payment failed: ${e.response?.data}',
+    developer.log(' Claim payment failed: ${e.response?.data}',
         name: 'ExpenseSplitRepository');
     throw Exception(_extractError(e) ?? 'Failed to claim payment');
   }

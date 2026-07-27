@@ -18,7 +18,7 @@ class PendingTransactionRepository {
             .toList();
       }
     } catch (e) {
-      developer.log('⚠️ Failed fetching pending recurring transactions: $e',
+      developer.log(' Failed fetching pending recurring transactions: $e',
           name: 'PendingTransactionRepository');
     }
     return [];
@@ -27,9 +27,9 @@ class PendingTransactionRepository {
   Future<void> acceptTransaction(String id) async {
     try {
       await _dio.post(ApiConstants.acceptTransaction(id));
-      developer.log('✅ Recurring occurrence accepted: $id', name: 'PendingTransactionRepository');
+      developer.log(' Recurring occurrence accepted: $id', name: 'PendingTransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Failed to accept transaction $id: $e', name: 'PendingTransactionRepository');
+      developer.log(' Failed to accept transaction $id: $e', name: 'PendingTransactionRepository');
       throw Exception('Failed to accept transaction');
     }
   }
@@ -37,9 +37,9 @@ class PendingTransactionRepository {
   Future<void> rejectTransaction(String id) async {
     try {
       await _dio.post(ApiConstants.rejectTransaction(id));
-      developer.log('✅ Recurring occurrence rejected: $id', name: 'PendingTransactionRepository');
+      developer.log(' Recurring occurrence rejected: $id', name: 'PendingTransactionRepository');
     } catch (e) {
-      developer.log('⚠️ Failed to reject transaction $id: $e', name: 'PendingTransactionRepository');
+      developer.log(' Failed to reject transaction $id: $e', name: 'PendingTransactionRepository');
       throw Exception('Failed to reject transaction');
     }
   }

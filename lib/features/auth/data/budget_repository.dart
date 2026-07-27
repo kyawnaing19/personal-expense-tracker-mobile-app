@@ -37,7 +37,7 @@ class BudgetRepository {
         }).toList();
       }
     } catch (e) {
-      developer.log('⚠️ Failed fetching budgets: $e', name: 'BudgetRepository');
+      developer.log(' Failed fetching budgets: $e', name: 'BudgetRepository');
     }
     return [];
   }
@@ -60,9 +60,9 @@ class BudgetRepository {
           'year': year,
         },
       );
-      developer.log('✅ Budget Created.', name: 'BudgetRepository');
+      developer.log(' Budget Created.', name: 'BudgetRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ Budget Create Failed: ${e.response?.data}', name: 'BudgetRepository');
+      developer.log(' Budget Create Failed: ${e.response?.data}', name: 'BudgetRepository');
       throw Exception(_extractError(e) ?? 'Failed to set budget');
     }
   }
@@ -82,9 +82,9 @@ class BudgetRepository {
           'alert_percentage': alertPercentage,
         },
       );
-      developer.log('✅ Budget Updated.', name: 'BudgetRepository');
+      developer.log(' Budget Updated.', name: 'BudgetRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ Budget Update Failed: ${e.response?.data}', name: 'BudgetRepository');
+      developer.log(' Budget Update Failed: ${e.response?.data}', name: 'BudgetRepository');
       throw Exception(_extractError(e) ?? 'Failed to update budget');
     }
   }
@@ -92,9 +92,9 @@ class BudgetRepository {
   Future<void> deleteBudget(String id) async {
     try {
       await _dio.delete('${ApiConstants.budgets}/$id');
-      developer.log('✅ Budget Deleted.', name: 'BudgetRepository');
+      developer.log(' Budget Deleted.', name: 'BudgetRepository');
     } on DioException catch (e) {
-      developer.log('⚠️ Budget Delete Failed: ${e.response?.data}', name: 'BudgetRepository');
+      developer.log(' Budget Delete Failed: ${e.response?.data}', name: 'BudgetRepository');
       throw Exception(_extractError(e) ?? 'Failed to delete budget');
     }
   }

@@ -54,6 +54,7 @@ dependencies:
   connectivity_plus: ^7.3.0
   internet_connection_checker_plus: ^3.1.1
   shared_preferences: ^2.5.5
+  google_fonts: ^6.2.1
   
   
 
@@ -92,7 +93,7 @@ flutter:
     - assets/images/onboarding3.jpg
     - assets/images/onboarding4.jpg
     - assets/images/onboarding5.jpg
-    - assets/icon/app_icon.jpg
+    - assets/icon/app_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -105,10 +106,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
+  fonts:
+    - family: Imprima
+      fonts:
+        - asset: assets/fonts/Imprima-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
@@ -120,7 +121,7 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "assets/images/logo.png"
+  image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21 

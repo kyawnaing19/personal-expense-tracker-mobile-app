@@ -49,7 +49,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   CategoryItem? _selectedCategory;
   CategoryItem? _itemToModify;
-
+  bool _isConfirmingDelete = false;
+ 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
@@ -160,7 +161,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       if (value == ".") {
         if (_shouldResetDisplay || _amount == "Error") {
           _amount = "0."; _shouldResetDisplay = false;
-        } else if (!_amount.contains(".")) {
+        } else if (!_amount.contains(".") && _amount.length < 10) {
           _amount += ".";
         }
         return;
@@ -168,8 +169,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
       if (_shouldResetDisplay || _amount == "Error") {
         _amount = value; _shouldResetDisplay = false;
-      } else {
-        _amount = (_amount == "0") ? value : _amount + value;
+      } else if (_amount == "0") {
+        _amount = value;
+      } else if (_amount.length < 10) {
+        _amount = _amount + value;
       }
     });
   }
@@ -415,10 +418,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
     if (_currentState == CategoryState.add) title = "Add New Category";
     if (_currentState == CategoryState.edit) title = "Edit Category";
 
-    double parsedAmount = double.tryParse(_amount) ?? 0.0;
-    bool hasValue = parsedAmount > 0 && _amount != "0" && _amount != "Error";
-    Color checkMarkColor = hasValue ? const Color(0xFF10B981) : const Color(0xFF9CA3AF);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
@@ -433,6 +432,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   Navigator.pop(context);
                 }
               } else {
+                if (_currentState == CategoryState.calculator) {
+                  _selectedCategory = null;
+                  _amount = "0";
+                  _expression = "";
+                  _shouldResetDisplay = false;
+                }
                 _updateState(CategoryState.view);
               }
             },
@@ -445,27 +450,25 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
           ),
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-          if (_currentState == CategoryState.calculator)
-            GestureDetector(
-              onTap: hasValue ? () => _onKeypadPressed("✓") : null,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: Icon(Icons.check, size: 18, color: checkMarkColor),
-              ),
-            )
-          else
-            const SizedBox(width: 36, height: 36),
+          const SizedBox(width: 36, height: 36),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryListFiltered(String type) {
+Widget _buildCategoryListFiltered(String type) {
     return BlocConsumer<CategoryBloc, CategoryStateBase>(
+      listenWhen: (previous, current) => previous != current,
+      
       listener: (context, state) {
         if (state is CategoryError) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.black));
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message), 
+              backgroundColor: Colors.black,
+            ),
+          );
         }
       },
       builder: (context, state) {
@@ -475,6 +478,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
         
         List<CategoryItem> currentCategories = [];
         if (state is CategoryLoaded) {
+          currentCategories = state.categories.where((c) => c.type == type).toList();
+        } else if (state is CategoryError) {
           currentCategories = state.categories.where((c) => c.type == type).toList();
         }
 
@@ -503,7 +508,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               style: TextStyle(
                                 color: Color(0xFF9CA3AF),
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -525,16 +529,31 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             onTap: () {
-                              setState(() { _selectedCategory = item; _amount = "0"; _expression = ""; _shouldResetDisplay = false; });
+                              setState(() { 
+                                _selectedCategory = item; 
+                                _amount = "0"; 
+                                _expression = ""; 
+                                _shouldResetDisplay = false; 
+                              });
                               _updateState(CategoryState.calculator);
                             },
                             leading: Container(
                               padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(shape: BoxShape.circle, border: _selectedCategory == item ? Border.all(color: Colors.black, width: 2) : null),
-                              child: CircleAvatar(radius: 20, backgroundColor: item.color, child: Icon(item.icon, color: Colors.white, size: 20)),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle, 
+                                border: _selectedCategory == item ? Border.all(color: Colors.black, width: 2) : null
+                              ),
+                              child: CircleAvatar(
+                                radius: 20, 
+                                backgroundColor: item.color, 
+                                child: Icon(item.icon, color: Colors.white, size: 20)
+                              ),
                             ),
                             title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15)),
-                            trailing: IconButton(icon: const Icon(Icons.more_vert, size: 22, color: Color(0xFF9CA3AF)), onPressed: () => _showActionBottomSheet(item)),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.more_vert, size: 22, color: Color(0xFF9CA3AF)), 
+                              onPressed: () => _showActionBottomSheet(item)
+                            ),
                           ),
                         ),
                       );
@@ -554,11 +573,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 },
                 child: Container(
                   width: 56,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7F3DFF),
+                  height: 56, 
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF7F3DFF),
                     shape: BoxShape.circle,
-                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
                   ),
                   child: const Icon(Icons.add, color: Colors.white, size: 28),
                 ),
@@ -568,33 +587,99 @@ class _CategoryScreenState extends State<CategoryScreen> {
         );
       },
     );
-  }
+}
+//   Widget _buildDeleteAlertBox(double screenWidth) {
+//     return Container(
+//       color: Colors.black38, alignment: Alignment.center,
+//       child: Container(
+//         width: screenWidth * 0.82, padding: const EdgeInsets.all(24),
+//         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             const Text("Are you sure you want to delete?", textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 16)),
+//             const SizedBox(height: 24),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//               children: [
+//                 TextButton(onPressed: () => _updateState(CategoryState.view), child: const Text("Cancel", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16))),
+//                 TextButton(
+//                   onPressed: _isConfirmingDelete ? null : () {
+//                     if (_itemToModify != null) {
+//                       setState(() => _isConfirmingDelete = true);
+//                       BlocProvider.of<CategoryBloc>(context).add(DeleteCategoryRequested(_itemToModify!.id));
+             
+//                       _selectedCategory = null; _itemToModify = null;
+//                       _updateState(CategoryState.view);
+//                       _isConfirmingDelete = false;
+//                     }
+//                   },
+//                   child: const Text("Confirm", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+//                 ),
+//               ],
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
-  Widget _buildDeleteAlertBox(double screenWidth) {
+Widget _buildDeleteAlertBox(double screenWidth) {
     return Container(
-      color: Colors.black38, alignment: Alignment.center,
+      color: Colors.black38,
+      alignment: Alignment.center,
       child: Container(
-        width: screenWidth * 0.82, padding: const EdgeInsets.all(24),
+        width: screenWidth * 0.82,
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Are you sure you want to delete?", textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              "Are you sure you want to delete?",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color.fromARGB(255, 15, 15, 15), fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                TextButton(onPressed: () => _updateState(CategoryState.view), child: const Text("Cancel", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16))),
-                TextButton(
-                  onPressed: () {
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED).withOpacity(0.05),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    side: BorderSide(color: const Color(0xFF7C3AED).withOpacity(0.5), width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: () => _updateState(CategoryState.view),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Color(0xFF7C3AED), fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
+                  onPressed: _isConfirmingDelete ? null : () {
                     if (_itemToModify != null) {
+                      setState(() => _isConfirmingDelete = true);
                       BlocProvider.of<CategoryBloc>(context).add(DeleteCategoryRequested(_itemToModify!.id));
-                      BlocProvider.of<TransactionBloc>(context).add(LoadTransactions());
-                      _selectedCategory = null; _itemToModify = null;
+
+                      _selectedCategory = null;
+                      _itemToModify = null;
                       _updateState(CategoryState.view);
+                      _isConfirmingDelete = false;
                     }
                   },
-                  child: const Text("Confirm", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: const Text(
+                    "Confirm",
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ],
             )

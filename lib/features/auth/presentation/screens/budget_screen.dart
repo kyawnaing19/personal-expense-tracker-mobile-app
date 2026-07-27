@@ -1,5 +1,6 @@
 import 'package:expense_tracker/features/auth/presentation/screens/budget_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../models/budget_model.dart';
 import '../bloc/budget_bloc.dart';
@@ -133,181 +134,192 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final double hPad = (screenWidth * 0.05).clamp(16.0, 28.0); 
     final double titleFontSize = (screenWidth * 0.043).clamp(15.0, 18.0);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFEBE0FF),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(11),
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
+    const Color kBudgetBg = Color(0xFFEBE0FF);
+
+   return AnnotatedRegion<SystemUiOverlayStyle>(
+  value: const SystemUiOverlayStyle(
+    systemNavigationBarColor: kBudgetBg,
+    systemNavigationBarDividerColor: kBudgetBg,
+   systemNavigationBarContrastEnforced: false,
+   systemNavigationBarIconBrightness: Brightness.dark,
+  ),
+      child: Scaffold(
+        backgroundColor: kBudgetBg,
+        appBar: AppBar(
+          backgroundColor: kBudgetBg,
+          elevation: 0,
+    leading: Padding(
+  padding: const EdgeInsets.only(left: 16.0),
+  child: GestureDetector(
+    onTap: () => Navigator.pop(context),
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
+    ),
+  ),
+),
+          title: const Text("Budget", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: GestureDetector(
+                onTap: _toggleFilterPanel,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _showFilterPanel ? const Color(0xFF8A4BEB) : Colors.white,
+                   shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.filter_alt_outlined,
+                    size: 20,
+                    color: _showFilterPanel ? Colors.white : const Color(0xFF8A4BEB),
+                  ),
+                ),
               ),
-              child: const Icon(Icons.arrow_back_ios_outlined, size: 20, color: Colors.black),
             ),
+          ],
+        ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 20.0),
+          child: FloatingActionButton(
+            onPressed: _goToSetNewBudget,
+            backgroundColor: const Color(0xFF8A4BEB),
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, color: Colors.white, size: 28),
           ),
         ),
-        title: const Text("Budget", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: _toggleFilterPanel,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _showFilterPanel ? const Color(0xFF8A4BEB) : Colors.white,
-                 shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.filter_alt_outlined,
-                  size: 20,
-                  color: _showFilterPanel ? Colors.white : const Color(0xFF8A4BEB),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20.0),
-        child: FloatingActionButton(
-          onPressed: _goToSetNewBudget,
-          backgroundColor: const Color(0xFF8A4BEB),
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: BlocConsumer<BudgetBloc, BudgetStateBase>(
-        listener: (context, state) {
-          if (state is BudgetError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-            );
-          }
-        },
-        builder: (context, state) {
-          final bool isLoading = state is BudgetLoading;
-          final List<BudgetItem> budgets = state is BudgetLoaded ? state.budgets : [];
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: BlocConsumer<BudgetBloc, BudgetStateBase>(
+          listener: (context, state) {
+            if (state is BudgetError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              );
+            }
+          },
+          builder: (context, state) {
+            final bool isLoading = state is BudgetLoading;
+            final List<BudgetItem> budgets = state is BudgetLoaded ? state.budgets : [];
 
-          if (!isLoading) _handleHighlightIfNeeded(budgets);
+            if (!isLoading) _handleHighlightIfNeeded(budgets);
 
-          return Column(
-            children: [
-              Container(
-                margin: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
-                padding: const EdgeInsets.all(20),
-                width: double.infinity,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Budget Categories : $monthLabel",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: titleFontSize),
-                    ),
-                    if (!isLoading && budgets.isEmpty) ...[
-                      const SizedBox(height: 12),
-                      const Text(
-                        "You haven't set a budget for this month yet. Enter a budget amount and select your preferred alert threshold to receive notifications when spending gets close.",
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
+            return Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Budget Categories : $monthLabel",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: titleFontSize),
                       ),
-                    ],
-                  ],
-                ),
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                child: !_showFilterPanel
-                    ? const SizedBox(width: double.infinity)
-                    : Container(
-                        margin: EdgeInsets.fromLTRB(hPad, 15, hPad, 0),
-                        padding: const EdgeInsets.all(20),
-                        width: double.infinity,
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Choose a month and year to see your monthly budget.",
-                              style: TextStyle(color: Colors.grey, fontSize: 13),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                const Text("Month", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-                                const Spacer(),
-                                _filterDropdown<int>(
-                                  value: _month,
-                                  items: List.generate(12, (i) => i + 1),
-                                  labelBuilder: (m) => kMonthNamesFull[m - 1],
-                                  onChanged: (v) => _onFilterChanged(month: v),
-                                ),
-                                const SizedBox(width: 10),
-                                _filterDropdown<int>(
-                                  value: _year,
-                                  items: years,
-                                  labelBuilder: (y) => y.toString(),
-                                  onChanged: (v) => _onFilterChanged(year: v),
-                                ),
-                              ],
-                            ),
-                          ],
+                      if (!isLoading && budgets.isEmpty) ...[
+                        const SizedBox(height: 12),
+                        const Text(
+                          "You haven't set a budget for this month yet. Enter a budget amount and select your preferred alert threshold to receive notifications when spending gets close.",
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
-                      ),
-              ),
-
-              // Body
-              Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF8A4BEB)))
-                    : budgets.isEmpty
-                        ? const SizedBox.shrink()
-                        : ListView.separated(
-                            padding: EdgeInsets.fromLTRB(hPad, 15, hPad, 90),
-                            itemCount: budgets.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 15),
-                            itemBuilder: (context, index) {
-                              final budget = budgets[index];
-                              final isHighlighted = widget.highlightCategoryId != null &&
-                                  budget.categoryId == widget.highlightCategoryId;
-
-                              final key = _itemKeys.putIfAbsent(budget.id, () => GlobalKey());
-
-                              final card = BudgetCard(
-                                budget: budget,
-                                onMenuTap: () => _openMenu(budget),
-                              );
-
-                              if (!isHighlighted) {
-                                return KeyedSubtree(key: key, child: card);
-                              }
-
-                              return KeyedSubtree(
-                                key: key,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: const Color(0xFF8A4BEB), width: 2),
+                      ],
+                    ],
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: !_showFilterPanel
+                      ? const SizedBox(width: double.infinity)
+                      : Container(
+                          margin: EdgeInsets.fromLTRB(hPad, 15, hPad, 0),
+                          padding: const EdgeInsets.all(20),
+                          width: double.infinity,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Choose a month and year to see your monthly budget.",
+                                style: TextStyle(color: Colors.grey, fontSize: 13),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  const Text("Month", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
+                                  const Spacer(),
+                                  _filterDropdown<int>(
+                                    value: _month,
+                                    items: List.generate(12, (i) => i + 1),
+                                    labelBuilder: (m) => kMonthNamesFull[m - 1],
+                                    onChanged: (v) => _onFilterChanged(month: v),
                                   ),
-                                  child: card,
-                                ),
-                              );
-                            },
+                                  const SizedBox(width: 10),
+                                  _filterDropdown<int>(
+                                    value: _year,
+                                    items: years,
+                                    labelBuilder: (y) => y.toString(),
+                                    onChanged: (v) => _onFilterChanged(year: v),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-              ),
-            ],
-          );
-        },
+                        ),
+                ),
+
+                // Body
+                Expanded(
+                  child: isLoading
+                      ? const Center(child: CircularProgressIndicator(color: Color(0xFF8A4BEB)))
+                      : budgets.isEmpty
+                          ? const SizedBox.shrink()
+                          : ListView.separated(
+                              padding: EdgeInsets.fromLTRB(hPad, 15, hPad, 90),
+                              itemCount: budgets.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 15),
+                              itemBuilder: (context, index) {
+                                final budget = budgets[index];
+                                final isHighlighted = widget.highlightCategoryId != null &&
+                                    budget.categoryId == widget.highlightCategoryId;
+
+                                final key = _itemKeys.putIfAbsent(budget.id, () => GlobalKey());
+
+                                final card = BudgetCard(
+                                  budget: budget,
+                                  onMenuTap: () => _openMenu(budget),
+                                );
+
+                                if (!isHighlighted) {
+                                  return KeyedSubtree(key: key, child: card);
+                                }
+
+                                return KeyedSubtree(
+                                  key: key,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: const Color(0xFF8A4BEB), width: 2),
+                                    ),
+                                    child: card,
+                                  ),
+                                );
+                              },
+                            ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

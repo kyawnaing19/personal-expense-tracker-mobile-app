@@ -54,8 +54,6 @@ class BudgetItem {
     );
   }
 
-  // ← non-constant IconData ဖန်တီးနေတဲ့ old _parseIcon ကို ဖယ်ပြီး
-  // shared resolveIcon() ကို အသုံးပြုမယ် (category_icons.dart ထဲက)
   static IconData _parseIcon(dynamic raw) {
     return resolveIcon(raw?.toString());
   }

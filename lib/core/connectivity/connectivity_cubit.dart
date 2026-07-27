@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'connectivity_service.dart';
 
 enum ConnectivityStatus { initial, online, offline }
@@ -39,31 +37,41 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
     _startListening();
   }
 
+  static const _offlineConfirmDelay = Duration(seconds: 2);
+
   StreamSubscription<bool>? _sub;
+  Timer? _offlineDebounce;
 
   Future<void> _startListening() async {
     final isOnline = await ConnectivityService.instance.checkConnection();
-    emit(state.copyWith(
-      status: isOnline ? ConnectivityStatus.online : ConnectivityStatus.offline,
-    ));
+    _applyStatus(isOnline);
 
-    _sub = ConnectivityService.instance.onStatusChange.listen((isOnline) {
-      emit(state.copyWith(
-        status: isOnline ? ConnectivityStatus.online : ConnectivityStatus.offline,
-      ));
+    _sub = ConnectivityService.instance.onStatusChange.listen(_applyStatus);
+  }
+
+  void _applyStatus(bool isOnline) {
+    if (isOnline) {
+      _offlineDebounce?.cancel();
+      _offlineDebounce = null;
+      emit(state.copyWith(status: ConnectivityStatus.online));
+      return;
+    }
+
+    _offlineDebounce?.cancel();
+    _offlineDebounce = Timer(_offlineConfirmDelay, () {
+      emit(state.copyWith(status: ConnectivityStatus.offline));
     });
   }
 
   Future<void> refreshStatus() async {
     final isOnline = await ConnectivityService.instance.checkConnection();
-    emit(state.copyWith(
-      status: isOnline ? ConnectivityStatus.online : ConnectivityStatus.offline,
-    ));
+    _applyStatus(isOnline);
   }
 
   @override
   Future<void> close() {
     _sub?.cancel();
+    _offlineDebounce?.cancel();
     return super.close();
   }
 }

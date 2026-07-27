@@ -153,7 +153,7 @@ class _CategoryCalculatorViewState extends State<CategoryCalculatorView> {
           crossAxisSpacing: 10,
           childAspectRatio: (constraints.maxWidth / 4) / cellHeight,
           children: [
-            _buildBaseButton("7"), _buildBaseButton("8"), _buildBaseButton("9"), _buildActionButton("Today"),
+            _buildBaseButton("7"), _buildBaseButton("8"), _buildBaseButton("9"), _buildConfirmButton(),
             _buildBaseButton("4"), _buildBaseButton("5"), _buildBaseButton("6"),
             Row(
               children: [
@@ -178,9 +178,31 @@ class _CategoryCalculatorViewState extends State<CategoryCalculatorView> {
     );
   }
 
+  Widget _buildConfirmButton() {
+    double parsedAmount = double.tryParse(widget.amount) ?? 0.0;
+    bool hasValue = parsedAmount > 0 && widget.amount != "0" && widget.amount != "Error";
+    Color checkMarkColor = hasValue ? const Color(0xFF10B981) : const Color(0xFF9CA3AF);
+
+    return GestureDetector(
+      onTap: hasValue ? () => widget.onKeypadPressed("✓") : null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFEDE9FE),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.check,
+            size: 20,
+            color: checkMarkColor,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButton(String label) {
     bool isEqual = label == "=";
-    bool isToday = label == "Today";
 
     return GestureDetector(
       onTap: () => widget.onKeypadPressed(label),
@@ -193,7 +215,7 @@ class _CategoryCalculatorViewState extends State<CategoryCalculatorView> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: isToday ? 13 : 20,
+              fontSize: 20,
               fontWeight: FontWeight.w600,
               color: isEqual ? const Color(0xFF7F3DFF) : Colors.black,
             ),

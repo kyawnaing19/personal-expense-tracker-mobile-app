@@ -1,11 +1,15 @@
 import 'package:expense_tracker/features/auth/presentation/bloc/analytics_bloc.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/analytics_event.dart';
 import 'package:expense_tracker/features/auth/presentation/bloc/analytics_state.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/category_bloc.dart';
+import 'package:expense_tracker/features/auth/presentation/bloc/category_state.dart';
 import 'package:expense_tracker/models/analytics_model.dart';
+import 'package:expense_tracker/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'home_screen.dart';
 
 class AnalyticalRecordPage extends StatefulWidget {
  final VoidCallback? onBackToHome;
@@ -17,6 +21,7 @@ class AnalyticalRecordPage extends StatefulWidget {
 }
 
 class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
+  
    String _selectedType = 'expense';
    String _selectedPeriod = 'month'; 
    String _subPeriod = 'this';
@@ -141,30 +146,10 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
     );
   }
 
-  final ScrollController _scrollController = ScrollController();
-  bool _showScrollArrow = false;
-
   @override
   void initState() {
     super.initState();
     _loadAnalyticsData();
-
-    _scrollController.addListener(() {
-      if (_scrollController.hasClients) {
-        if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 5) {
-          if (_showScrollArrow) setState(() => _showScrollArrow = false);
-        } else {
-          if (!_showScrollArrow) setState(() => _showScrollArrow = true);
-        }
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   void _applyPeriodFilter(String period) {
@@ -196,6 +181,14 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
       _loadAnalyticsData();
     }
   }
+  String get _selectionVariantKey {
+    if (_selectedPeriod == 'custom') {
+      final String startKey = _startDate != null ? DateFormat('yyyyMMdd').format(_startDate!) : 'none';
+      final String endKey = _endDate != null ? DateFormat('yyyyMMdd').format(_endDate!) : 'none';
+      return '${_selectedType}_custom_${startKey}_$endKey';
+    }
+    return '${_selectedType}_${_selectedPeriod}_${_subPeriod}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,18 +199,18 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
       backgroundColor: const Color(0xFFE8DEF8),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
               const SizedBox(height: 10),
               _buildAppBar(),
               const SizedBox(height: 20),
               isCustom ? _buildCustomRangeHeader() : _buildPeriodToggle(),
-              const SizedBox(height: 25),
+              const SizedBox(height: 14),
               if (!isCustom) _buildSubPeriodSelector(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Expanded(
-                key: ValueKey('${_selectedType}_${_selectedPeriod}_${_subPeriod}'),
+                key: ValueKey(_selectionVariantKey),
                 child: BlocBuilder<AnalyticsBloc, AnalyticsState>(
                   builder: (context, state) {
                     if (state is AnalyticsLoading || state is AnalyticsInitial) {
@@ -237,17 +230,10 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
                         );
                       }
 
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_scrollController.hasClients) {
-                          bool canScroll =
-                              _scrollController.position.maxScrollExtent > 0;
-                          if (canScroll != _showScrollArrow) {
-                            setState(() => _showScrollArrow = canScroll);
-                          }
-                        }
-                      });
-
                       final bool isYearSelected = _selectedPeriod == 'year';
+                      final bool showCategoryBarList = _selectedPeriod == 'week' ||
+                          _selectedPeriod == 'month' ||
+                          _selectedPeriod == 'custom';
 
                       if (isYearSelected) {
                         return Column(
@@ -260,6 +246,26 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
                           ],
                         );
                       }
+
+                      
+if (showCategoryBarList) {
+  return SingleChildScrollView(
+    key: ValueKey('barlist_$_selectionVariantKey'),
+    physics: const BouncingScrollPhysics(),
+    child: Column(
+      children: [
+        _buildAnalyticsCard(state.response, currencyFormatter),
+        const SizedBox(height: 16),
+        _CategoryBarListCard(
+          key: ValueKey('barlistcard_$_selectionVariantKey'),
+          response: state.response,
+          formatter: currencyFormatter,
+        ),
+        const SizedBox(height: 8), 
+      ],
+    ),
+  );
+}
 
                       return _buildAnalyticsCard(state.response, currencyFormatter);
                     } else if (state is AnalyticsEmpty) {
@@ -274,7 +280,7 @@ class AnalyticalRecordPageState extends State<AnalyticalRecordPage> {
                   },
                 ),
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -321,7 +327,7 @@ Widget _buildAppBar() {
           child: IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            icon: const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.black),
+            icon: const Icon(Icons.calendar_month_outlined, size: 20, color: Colors.black),
             onPressed: () async {
               _showCustomDateRangePicker();
             },
@@ -396,7 +402,6 @@ Widget _buildAppBar() {
             Text(dateFmt.format(_startDate!),
                 style: const TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black)),
-            const Icon(Icons.arrow_drop_down, color: Colors.black),
             const SizedBox(width: 6),
             const Text('~', style: TextStyle(fontSize: 15, color: Colors.black54)),
             const SizedBox(width: 6),
@@ -497,106 +502,11 @@ Widget _buildAppBar() {
   Widget _buildAnalyticsCard(AnalyticsResponse response, NumberFormat formatter) {
     return Align(
       alignment: Alignment.topCenter,
-      child: Container(
-        width: double.infinity,
-        height: 180,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 4,
-              child: SizedBox(
-                height: 142,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    PieChart(
-                      key: ValueKey('${_selectedType}_${_selectedPeriod}_${_subPeriod}'),
-                      PieChartData(
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 42,
-                        startDegreeOffset: -90,
-                        sections: response.breakdown.map((data) {
-                          return PieChartSectionData(
-                            color: data.color,
-                            value: data.percentage,
-                            title: '',
-                            radius: 10,
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _selectedType == 'expense' ? 'Expense' : 'Income',
-                          style: TextStyle(
-                              fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          formatter.format(response.overallTotal),
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 5,
-              child: Stack(
-                children: [
-                  SizedBox(
-                    height: 142,
-                    child: RawScrollbar(
-                      thumbColor: Colors.grey[300],
-                      radius: const Radius.circular(4),
-                      thickness: 3,
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        physics: const BouncingScrollPhysics(),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 6.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children:
-                                response.breakdown.map((data) => _buildLegendItem(data)).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (_showScrollArrow)
-                    Positioned(
-                      bottom: 0, left: 0, right: 0,
-                      child: Container(
-                        height: 22,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.white.withOpacity(0.0), Colors.white.withOpacity(0.9)],
-                          ),
-                        ),
-                        child: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF7C3AED)),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: _PieChartCard(
+        key: ValueKey('piecard_$_selectionVariantKey'),
+        response: response,
+        formatter: formatter,
+        selectedType: _selectedType,
       ),
     );
   }
@@ -716,31 +626,6 @@ Widget _buildAppBar() {
       ],
     );
   }
-  Widget _buildLegendItem(AnalyticsData data) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.5),
-      child: Container(
-        height: 19,
-        child: Row(
-          children: [
-            Container(
-                width: 11,
-                height: 11,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle, border: Border.all(color: data.color, width: 2.8))),
-            const SizedBox(width: 8),
-            Expanded(
-                child: Text(data.categoryName,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black),
-                    overflow: TextOverflow.ellipsis)),
-            Text('${data.percentage.toStringAsFixed(2)}%',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black.withOpacity(0.8))),
-          ],
-        ),
-      ),
-    );
-  }
-
  Widget _buildEmptyState() {
   return Align(
     alignment: Alignment.topCenter,
@@ -763,6 +648,410 @@ Widget _buildAppBar() {
   );
 }
 }
+class _PieChartCard extends StatefulWidget {
+  final AnalyticsResponse response;
+  final NumberFormat formatter;
+  final String selectedType;
+
+  const _PieChartCard({
+    Key? key,
+    required this.response,
+    required this.formatter,
+    required this.selectedType,
+  }) : super(key: key);
+
+  @override
+  State<_PieChartCard> createState() => _PieChartCardState();
+}
+
+class _PieChartCardState extends State<_PieChartCard> {
+  static const int _itemsPerPage = 5;
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Widget _legendItem(AnalyticsData data) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.5),
+      child: SizedBox(
+        height: 19,
+        child: Row(
+          children: [
+            Container(
+                width: 11,
+                height: 11,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle, border: Border.all(color: data.color, width: 2.8))),
+            const SizedBox(width: 8),
+            Expanded(
+                child: Text(data.categoryName,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black),
+                    overflow: TextOverflow.ellipsis)),
+            Text('${data.percentage.toStringAsFixed(2)}%',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black.withOpacity(0.8))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<AnalyticsData> data = widget.response.breakdown;
+    final int pageCount = data.isEmpty ? 1 : (data.length / _itemsPerPage).ceil();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 142,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 42,
+                          startDegreeOffset: -90,
+                          sections: data.map((d) {
+                            return PieChartSectionData(
+                              color: d.color,
+                              value: d.percentage,
+                              title: '',
+                              radius: 10,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.selectedType == 'expense' ? 'Expense' : 'Income',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 2),
+                          SizedBox(
+                            width: 76,
+                            child: AutoSlideText(
+                              valueText:
+                                  '${widget.formatter.format(widget.response.overallTotal)} Ks',
+                              textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                              centerText: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 5,
+                  child: data.isEmpty
+                      ? const SizedBox.shrink()
+                      : PageView.builder(
+                          controller: _pageController,
+                          itemCount: pageCount,
+                          onPageChanged: (index) => setState(() => _currentPage = index),
+                          itemBuilder: (context, pageIndex) {
+                            final int start = pageIndex * _itemsPerPage;
+                            final int end = (start + _itemsPerPage).clamp(0, data.length);
+                            final List<AnalyticsData> pageItems = data.sublist(start, end);
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: pageItems.map(_legendItem).toList(),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+       
+        SizedBox(
+  height: 20, 
+  child: pageCount > 1
+      ? Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(pageCount, (index) {
+            final bool isActive = _currentPage == index;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isActive ? 8 : 6,
+              height: isActive ? 8 : 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isActive ? Colors.black87 : Colors.black26,
+              ),
+            );
+          }),
+        )
+      : const SizedBox.shrink(),
+),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryBarListCard extends StatefulWidget {
+  final AnalyticsResponse response;
+  final NumberFormat formatter;
+
+  const _CategoryBarListCard({
+    Key? key,
+    required this.response,
+    required this.formatter,
+  }) : super(key: key);
+
+  @override
+  State<_CategoryBarListCard> createState() => _CategoryBarListCardState();
+}
+
+class _CategoryBarListCardState extends State<_CategoryBarListCard> {
+  static const int _itemsPerPage = 3;
+  static const double _dividerHeight = 21;
+  static const double _rowHeight = 48;       
+  static const double _dotsAreaHeight = 26;
+
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<AnalyticsData> data = widget.response.breakdown;
+
+    if (data.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final categoryState = context.watch<CategoryBloc>().state;
+    final Map<String, CategoryItem> categoryLookup = {};
+    if (categoryState is CategoryLoaded) {
+      for (final cat in categoryState.categories) {
+        categoryLookup[cat.name.trim().toLowerCase()] = cat;
+      }
+    }
+
+    final double maxPercentage =
+        data.map((d) => d.percentage).fold<double>(0.0, (a, b) => a > b ? a : b);
+
+    final int pageCount = (data.length / _itemsPerPage).ceil();
+
+    final double bodyHeight =
+        (_itemsPerPage * _rowHeight) + ((_itemsPerPage - 1) * _dividerHeight);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: bodyHeight,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: pageCount,
+              onPageChanged: (index) => setState(() => _currentPage = index),
+              itemBuilder: (context, pageIndex) {
+                final int start = pageIndex * _itemsPerPage;
+                final int end = (start + _itemsPerPage).clamp(0, data.length);
+                final List<AnalyticsData> pageItems = data.sublist(start, end);
+
+                final List<Widget> pageChildren = [];
+                for (int i = 0; i < pageItems.length; i++) {
+                  if (i > 0) {
+                    pageChildren.add(
+                      const Divider(height: _dividerHeight, thickness: 0.6, color: Color(0xFFF1F1F1)),
+                    );
+                  }
+
+                  final AnalyticsData item = pageItems[i];
+                  final double ratio =
+                      maxPercentage > 0 ? (item.percentage / maxPercentage) : 0.0;
+                  final double value = item.totalAmount;
+
+                  final CategoryItem? matchedCategory =
+                      categoryLookup[item.categoryName.trim().toLowerCase()];
+                  final IconData rowIcon = matchedCategory?.icon ?? Icons.category;
+                  final Color rowColor = matchedCategory?.color ?? item.color;
+
+                  pageChildren.add(
+                    SizedBox(
+                      height: _rowHeight,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            alignment: Alignment.center,
+                            decoration:
+                                BoxDecoration(color: rowColor, shape: BoxShape.circle),
+                            child: Icon(rowIcon, size: 16, color: Colors.white),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Wrap(
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        children: [
+                                          Text(
+                                            item.categoryName,
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${item.percentage.toStringAsFixed(2)}%',
+                                            style: TextStyle(
+                                                fontSize: 12, color: Colors.grey[500]),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${widget.formatter.format(value)} Ks',
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final double barWidth = constraints.maxWidth;
+                                    final double fillWidth = (barWidth * ratio.clamp(0.0, 1.0));
+                                    final double displayWidth = fillWidth < 6 && ratio > 0 ? 6.0 : fillWidth;
+
+                                    return SizedBox(
+                                      width: barWidth,
+                                      height: 6,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                          width: displayWidth,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: rowColor,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: pageChildren,
+                );
+              },
+            ),
+          ),
+          SizedBox(
+            height: _dotsAreaHeight,
+            child: pageCount > 1
+                ? Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(pageCount, (index) {
+                        final bool isActive = _currentPage == index;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: isActive ? 8 : 6,
+                          height: isActive ? 8 : 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isActive ? Colors.black87 : Colors.black26,
+                          ),
+                        );
+                      }),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CalendarRangeDialog extends StatefulWidget {
   final DateTime? initialStart;
   final DateTime? initialEnd;

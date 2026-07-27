@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:expense_tracker/core/connectivity/connectivity_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,8 +57,22 @@ Future<void> _onCheckAuthStatus(
       final user = await _authRepository.googleLogin();
       emit(AuthAuthenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_mapErrorToMessage(e)));
     }
+  }
+
+  String _mapErrorToMessage(Object e) {
+    if (e is SocketException ||
+        (e is DioException &&
+            (e.type == DioExceptionType.connectionError ||
+                e.type == DioExceptionType.connectionTimeout ||
+                e.type == DioExceptionType.receiveTimeout))) {
+      return 'No internet connection. Please check your network connection and try again!';
+    }
+    if (e.toString().contains('Google Sign In cancelled')) {
+      return 'Google Sign In is cancelled. Please try again!';
+    }
+    return 'Something went wrong. Please try again!';
   }
 
   Future<void> _onLogout(

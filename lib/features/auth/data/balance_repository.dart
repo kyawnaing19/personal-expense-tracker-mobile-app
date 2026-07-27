@@ -16,7 +16,7 @@ class BalanceRepository {
           .map((json) => MemberBalanceModel.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      developer.log('⚠️ Failed fetching group balance: ${e.response?.data}',
+      developer.log(' Failed fetching group balance: ${e.response?.data}',
           name: 'BalanceRepository');
       throw Exception(_extractError(e) ?? 'Failed to load balance');
     }
@@ -33,7 +33,7 @@ class BalanceRepository {
       return MemberBalanceDetailModel.fromJson(data);
     } on DioException catch (e) {
       developer.log(
-          '⚠️ Failed fetching member balance details: ${e.response?.data}',
+          ' Failed fetching member balance details: ${e.response?.data}',
           name: 'BalanceRepository');
       throw Exception(_extractError(e) ?? 'Failed to load balance detail');
     }
@@ -58,7 +58,7 @@ class BalanceRepository {
     return SettlementHistoryModel.fromJson(data);
   } on DioException catch (e) {
     developer.log(
-        '⚠️ Failed fetching settlement history: ${e.response?.data}',
+        ' Failed fetching settlement history: ${e.response?.data}',
         name: 'BalanceRepository');
     throw Exception(_extractError(e) ?? 'Failed to load settlement history');
   }

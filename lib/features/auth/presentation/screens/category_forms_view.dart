@@ -119,39 +119,6 @@ class CategoryFormsView {
       ),
     );
   }
-  // static Widget _buildButtonRow({
-  //   required String leftLabel,
-  //   required bool leftIsOutlined,
-  //   required VoidCallback onLeft,
-  //   required String rightLabel,
-  //   required VoidCallback onRight,
-  // }) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       OutlinedButton(
-  //         style: OutlinedButton.styleFrom(
-  //           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-  //           side: const BorderSide(color: Color(0xFF7F3DFF), width: 1.5),
-  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //         ),
-  //         onPressed: onLeft,
-  //         child: Text(leftLabel, style: const TextStyle(color: Color(0xFF7F3DFF), fontSize: 16, fontWeight: FontWeight.bold)),
-  //       ),
-  //       ElevatedButton(
-  //         style: ElevatedButton.styleFrom(
-  //           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-  //           backgroundColor: const Color(0xFF7F3DFF),
-  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //           elevation: 0,
-  //         ),
-  //         onPressed: onRight,
-  //         child: Text(rightLabel, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   static Widget _buildButtonRow({
     required String leftLabel,
     required bool leftIsOutlined,
@@ -236,7 +203,6 @@ class CategoryFormsView {
     final double cardWidth = screenWidth * 0.9;
 
     return GestureDetector(
-      // Tap outside the card closes the pop-up
       onTap: onClose,
       child: Container(
         color: Colors.black38,
